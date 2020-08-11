@@ -1,3 +1,11 @@
+/*
+ * @Author: Howell
+ * @Date: 2020-08-10 17:34:17
+ * @LastEditTime: 2020-08-11 10:03:08
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \USERd:\Documents\GitProject\DataCollection\DProj\HARDWARE\LED\led.c
+ */
 #include "led.h"
 /**
  * @description: LED IO initial
@@ -22,12 +30,16 @@ void LED_Init(void)
 	printf("*LED_Init\r\n");
 	#endif
 }
-extern vu16 led_on_flag;
+
+
+extern vu16 led_on_flag;  // 全局LED灯的开关
+
 /**
  * @description: LED control
  * @param {type} none
  * @return: none
  */
+// 绿灯
 void LED_GREEN_ON(void)
 {
 	if(led_on_flag)
@@ -42,7 +54,7 @@ void LED_GREEN_NOT(void)
 	if(led_on_flag)
 		ledGREEN = !ledGREEN;
 }
-
+// 黄灯
 void LED_YELLOW_ON(void)
 {
 	if(led_on_flag)
@@ -57,7 +69,7 @@ void LED_YELLOW_NOT(void)
 	if(led_on_flag)
 		ledBLUE = !ledBLUE;
 }
-
+// 蓝灯
 void LED_BLUE_ON(void)
 {
 	if(led_on_flag)

@@ -129,7 +129,8 @@ void Data_Packing_sens(char *msg)
 	strcat(msg,tempdata);
 	
 	// relay state
-	relay_sta = Relay_IO_IN; 
+	// <!Ç¿ÖÆÖÃÁã>
+	relay_sta = 0; 
 	sprintf(tempdata,"|OUT/RLY/%d\n",relay_sta);
 	strcat(msg,tempdata);	
 

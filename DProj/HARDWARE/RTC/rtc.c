@@ -309,7 +309,7 @@ void Sys_Enter_Standby(u32 time_seconed)
 		mf_sync();
 	RCC_AHB1PeriphResetCmd(0X04FF,ENABLE);//复位所有IO口
 	/*关闭所有外设*/
-	POWER_4G =0;
+	POWER_D =0;
 	POWER_USB=0;
 	POWER_CAM=0;
 	POWER_OUT3V3=0;

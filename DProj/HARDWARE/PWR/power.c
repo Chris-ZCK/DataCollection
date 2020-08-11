@@ -1,11 +1,18 @@
+/*
+ * @Author: Howell
+ * @Date: 2020-08-09 10:58:08
+ * @LastEditTime: 2020-08-09 14:14:21
+ * @LastEditors: Please set LastEditors
+ * @Description: 
+ * @FilePath: \Aproj\HARDWARE\PWR\power.c
+ */
+#include "stdio.h"
 #include "power.h"
 #include "delay.h"
-#include "iwdg.h"
-
 /**
- * @description: Power_Ctrl_Init, 电源控制引脚初始化
- * @param 
- * @return: 
+ * @description: 电源引脚初始化
+ * @param {type} 
+ * @return {type} 
  */
 void Power_Ctrl_Init(void)
 {
@@ -22,18 +29,8 @@ void Power_Ctrl_Init(void)
 	
 	// POWER_OUT & POWER_CAM
 	GPIO_SetBits(GPIOE, GPIO_Pin_11 | GPIO_Pin_12 );
-	// POWER_MP & POWER_MIC & POWER_USB & POWER_OUT3V3 & POWER_OUT5
-	GPIO_ResetBits(GPIOE, GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-	
-
-	//INIO1
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-	GPIO_Init(GPIOE, &GPIO_InitStructure);  // 初始化
-	GPIO_ResetBits(GPIOE, GPIO_Pin_7);
-	//OUTIO1
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);  // 初始化
-	GPIO_ResetBits(GPIOC, GPIO_Pin_4);
+	// POWER_D & POWER_LE & POWER_USB & POWER_USB & POWER_OUT3V3 & POWER_OUT5
+	GPIO_ResetBits(GPIOE, GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
 	#if EN_log_print>=2
 	printf("*Power_Ctrl_Init\r\n");
 	#endif
@@ -43,9 +40,9 @@ void Power_Ctrl_Init(void)
 }
 
 /**
- * @description: Cam_Crtl_Init, 相机控制引脚初始化
- * @param
- * @return: 
+ * @description: 相机控制引脚初始化
+ * @param {type} 
+ * @return {type} 
  */
 void Cam_Crtl_Init(void)
 {
@@ -64,25 +61,9 @@ void Cam_Crtl_Init(void)
 	GPIO_ResetBits(GPIOD, GPIO_Pin_5 | GPIO_Pin_6);
 }
 
-//初始化IIC
-void Relay_Init(void)
-{					     
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	RCC_AHB1PeriphClockCmd(	RCC_AHB1Periph_GPIOC, ENABLE );	
-
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
-	GPIO_Init(GPIOC, &GPIO_InitStructure);//初始化
-
-	GPIO_ResetBits(GPIOC, GPIO_Pin_5);
-}
 
 /**
- * @description: USB_Photograph
+ * @description: 控制相机拍照
  * 相机被识别后控制拍照引脚
  * 拉高引脚通知相机拍照或录像（根据相机的设置），拉高时间0.5~1s，然后拉低
  * @param {type} 
@@ -90,15 +71,16 @@ void Relay_Init(void)
  */
 void USB_Photograph(void)
 {
-	USB_PHO = 1;
+	USB_TP = 1;
 	printf("拍摄...\r\n");
 	delay_ms(1000);
-	USB_PHO = 0;
+	USB_TP = 0;
 	printf("ing .....\r\n");
 }
 
+
 /**
- * @description: USB_Connecting
+ * @description: 控制器链接相机
  * 控制相机被USB访问引脚
  * 控制相机是否处于连接状态，当电平拉高时，告知相机外部设备要接USB了，外部设备完成USB连接后可以把输入引脚3拉低，即可恢复相机
  * @param {type} 
@@ -118,107 +100,53 @@ void USB_Connecting(u8 ctrl)
 	}
 }
 
-// 5V USB电源控制引脚
+
+/**
+ * @description: 连接相机
+ * @param {type} 
+ * @return {type} 
+ */
 void USB_CONNECT_ON()
 {
 	POWER_USB = 1;
 }
+
+
+/**
+ * @description: 断开相机连接
+ * @param {type} 
+ * @return {type} 
+ */
 void USB_CONNECT_OFF()
 {
 	POWER_USB = 0;
 }
 
-// 模拟打开相机
+
+/**
+ * @description: 执行访问相机动作
+ * 1. 连
+ * @param {type} 
+ * @return {type} 
+ */
 void openUSB(void)
 {
-	printf("openUSB...\r\n");
-	IWDG_Feed();
+	printf("*openUSB...\r\n");
 	USB_Connecting(1);  // 首先通知相机处于连接模式
-	//delay_ms(10);
 	USB_CONNECT_ON();  // 打开USB电源
-	//delay_ms(100);
 }
 
-// 模拟关闭相机
+
+/**
+ * @description: 关闭相机连接的动作
+ * @param {type} 
+ * @return {type} 
+ */
 void closeUSB(void)
 {
-	printf("closeUSB...\r\n");
+	printf("*closeUSB...\r\n");
 	// delay_ms(10);
 	USB_Connecting(0);
 	// delay_ms(100);
 	USB_CONNECT_OFF();
 }
-
-
-// 模拟打开负载
-void openReLoad(void)
-{
-	IWDG_Feed();
-	printf("*openReLoad...\r\n");
-	POWER_OUTIO1=1;
-	delay_ms(1000);
-	delay_ms(1000);
-	delay_ms(1000);
-}
-
-// 模拟关闭负载
-void closeReLoad(void)
-{
-	printf("*closeReLoad...\r\n");
-	POWER_OUTIO1=0;
-	delay_ms(100);
-}
-
-// 模拟打开
-u8 openOutputLoad(void)
-{
-	u8 i=0;
-	IWDG_Feed();
-	while(i++<3)
-	{
-		if(Relay_IO_IN==1)
-		{
-			printf("*succeed openOutputLoad...\r\n");
-			return 1;
-		}
-		else
-		{
-			printf("*try openOutputLoad...cnt:%d\r\n", i);
-			POWER_INIO1=1;
-			delay_ms(300);
-			POWER_INIO1=0;
-			delay_ms(1000);
-			delay_ms(1000);
-		}
-		
-	}
-	printf("*!fail openOutputLoad...\r\n");
-	return 0;
-}
-
-u8 closeOutputload(void)
-{
-	u8 i=0;
-	IWDG_Feed();
-	while(i++<3)
-	{
-		if(Relay_IO_IN==0)
-		{
-			printf("*succeed closeOutputload...\r\n");
-			return 1;
-		}
-		else
-		{
-			printf("*try closeOutputload...cnt:%d\r\n", i);
-			POWER_INIO1=1;
-			delay_ms(300);
-			POWER_INIO1=0;
-			delay_ms(1000);
-			delay_ms(1000);
-		}	
-	}
-	printf("*!fail closeOutputload...\r\n");
-	return 0;
-}
-
-

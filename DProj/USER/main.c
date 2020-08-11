@@ -1,7 +1,4 @@
-
-.
-..........#include "sys.h"
-
+#include "sys.h"
 //UCOSIII中以下优先级用户程序不能使用，ALIENTEK
 //将这些优先级分配给了UCOSIII的5个系统内部任务
 //优先级0：中断服务服务管理任务 OS_IntQTask()
@@ -10,27 +7,24 @@
 //优先级OS_CFG_PRIO_MAX-2：统计任务 OS_StatTask()
 //优先级OS_CFG_PRIO_MAX-1：空闲任务 OS_IdleTask()
 
-//任务优先级
-#define START_TASK_PRIO		3
+/* 开始任务 */
+#define START_TASK_PRIO									3
 //任务堆栈大小	
-#define START_STK_SIZE 		128
-//任务控制块
-OS_TCB StartTaskTCB;
-//任务堆栈	
-CPU_STK START_TASK_STK[START_STK_SIZE];
+#define START_STK_SIZE 									128
+static OS_TCB 											StartTaskTCB;	
+static CPU_STK 											START_TASK_STK[START_STK_SIZE];
 //任务函数
 void start_task(void *p_arg);
 
 /* 系统主任务 */
 #define MAIN_TASK_PRIO									6
-//任务堆栈大小32bit
+//任务堆栈大小
 #define CPU_STK_MAIN_SIZE								1000
 //时间片长度
 #define MAIN_TICK_LEN									0
 static  OS_TCB											MainTaskTCB;
 static	CPU_STK											MainTaskStk[CPU_STK_MAIN_SIZE];
 static void  MainTask(void* p_arg);
-
 
 
 /* 接收MQTT指令 */
@@ -68,20 +62,27 @@ static   OS_TCB                                         SystemDatasBroadcast_TCB
 static   CPU_STK                                        SystemDatasBroadcast_STK [SystemDatasBroadcast_STK_SIZE];// 开辟数组作为任务栈给任务使用
 static void  SystemDatasBroadcast (void *p_arg);
 
+
+/**
+ * @description: 系统软复位
+ * @param {type} 
+ * @return {type} 
+ */
 void SoftReset(void)
 {
     __set_FAULTMASK(1); // 关闭所有中断
     NVIC_SystemReset(); // 复位
 }
 
-//bit0:表示电脑正在向SD卡写入数据
-//bit1:表示电脑正从SD卡读出数据
-//bit2:SD卡写数据错误标志位
-//bit3:SD卡读数据错误标志位
-//bit4:1,启动ping任务
-//bit5:保留.
-//bit6:保留.
-//bit7:保留.
+
+// bit0:表示电脑正在向SD卡写入数据
+// bit1:表示电脑正从SD卡读出数据
+// bit2:SD卡写数据错误标志位
+// bit3:SD卡读数据错误标志位
+// bit4:1,启动ping任务
+// bit5:保留.
+// bit6:保留.
+// bit7:保留.
 
 struct cycle_package cycle;
 struct flash_package eerom;
@@ -106,14 +107,22 @@ vu16 hardwork_min = TD_C_H_S;
 vu16 hardwork_max = TD_C_H_E;
 vu16 max_work_length = MAX_RUN_TIME;
 ////////////////////////////////////////////
+
+/**
+ * @description: 系统初始化
+ * @param {type} 
+ * @return {type}
+  */
 void system_init(void)
 {
 	u8 res;
-	// local  carious
+
+	// local variable
 	u32 now_time;
 	int time_delta;
+
 	// global various
-	//watchdog_f=0;
+	// watchdog_f=0;
 	function_f = 0;  // 任务执行标志清零
 	function_f2 = 0;
 	ec25_on_flag = 0;
@@ -121,20 +130,23 @@ void system_init(void)
 	led_on_flag = 0;
 	u8 m_buf[100];
 	u16 m_value[9];
+
 	//u16 *m_value;
+
 	// systerm initial
 	delay_init(168);  	// 时钟初始化
 	KEY_Init();	  		// key init
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 中断分组配置
 	uart_init(921600); 	// 串口初始化
 	printf("\r\n\r\n\r\n>>>>>>>>>>>>>>systerm start>>>>>>>>>>>>>>\r\n");
-	InitQueue(&Q_stage);  // 初始化队列 
-	InitQueue(&Q_resent);  // 初始化队列 	
+	
+	InitQueue(&Q_stage);  	// 初始化队列 
+	InitQueue(&Q_resent);  	// 初始化队列 	
 	IWDG_Init(IWDG_Prescaler_256,4000); //4,000*256/32,000=32s
 	My_RTC_Init();  //初始化RTC
 	calendar_get_time(&calendar);
 	calendar_get_date(&calendar);
-	printf("*DATA:%d-%d-%d	Time:%d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	printf("DATA:%d-%d-%d	Time:%d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
     local_time_cnt = calendar.sec;  // 用于看门狗统计
 	// updata sys parameters
 	// 打开SD开
@@ -225,11 +237,11 @@ void system_init(void)
 	res = KEY_Scan(20);
 	switch(res)
 	{
-		case KEY1_PRES:
+		case KEY2_PRES:
 			key_on_flag = 1;
 			printf("$!!!force to execute the task!!!\r\n");
 			break;
-		case KEY2_PRES:
+		case KEY3_PRES:
 			function_f2=1;
 			ec25_on_flag=1;
 			printf("$!!!force not to sleep!!!\r\n");
@@ -311,7 +323,6 @@ void system_init(void)
 	printf("-------------------------\r\n");
 	
 	Power_Ctrl_Init(); // 电源初始化	
-	Relay_Init(); // 继电器初始化
 	// sys hardware
 	rng_Init();	
 	LED_Init();   // LED init
@@ -398,11 +409,15 @@ void system_init(void)
 	IWDG_Feed();//喂狗
 }
 
-// 分析参数
-// return:
-// 0:分析成功
-// 100：不需要更新
-// 其它：数据异常
+
+/**
+ * @description: 分析参数
+ * @param {type} 
+ * @return {type} 
+ * 0      分析成功
+ * 100    不需要更新
+ * others 数据异常
+ */
 u8 analyze_config_para(char *buf, u16 * val)
 {
 	u8 res;
@@ -495,7 +510,12 @@ u8 analyze_config_para(char *buf, u16 * val)
 	return res;
 }
 
-//主函数
+
+/**
+ * @description: 主函数
+ * @param {type} 
+ * @return {type} 
+ */
 int main(void)
 {
 	OS_ERR err;
@@ -522,7 +542,11 @@ int main(void)
 }
 
 
-//开始任务函数
+/**
+ * @description:开始任务函数 
+ * @param {type} 
+ * @return {type} 
+ */
 void start_task(void *p_arg)
 {
 	OS_ERR err;
@@ -622,7 +646,13 @@ void start_task(void *p_arg)
 	OSTaskDel((OS_TCB*)0,&err);	//删除start_task任务自身
 }
 
+
 static u8 local_memdevflag=0;  
+/**
+ * @description: 
+ * @param {type} 
+ * @return {type} 
+ */
 void  SysWatchTask(void *pdata)
 {
 	OS_ERR err;
@@ -674,7 +704,12 @@ void  SysWatchTask(void *pdata)
 	}									 
 }
 
-// 扫描转存相机中的文件
+
+/**
+ * @description: 扫描转存相机中的文件
+ * @param {type} 
+ * @return {type} 
+ */
 void act_scan_camera(void)
 {
 	u8 res;
@@ -723,7 +758,13 @@ void act_scan_camera(void)
 	usbConnectSwitchSet(0);
 	delay_ms(1000);
 }
-// 拍照
+
+
+/**
+ * @description: 拍照
+ * @param {type} 
+ * @return {type} 
+ */
 void act_tale_photo(void)
 {
 	LED_YELLOW_ON();
@@ -744,9 +785,11 @@ void act_tale_photo(void)
 }
 
 
-
-
-// 发送图片
+/**
+ * @description: 发送图片
+ * @param {type} 
+ * @return {type} 
+ */
 u8 act_send_picture(void)
 {
 	F407USART1_SendString("->\r\n$act:act_send_picture...\r\n");
@@ -761,8 +804,12 @@ u8 act_send_picture(void)
 	return 1;
 }
 
-// <s>MainTask
-// 返回0表示成功
+
+/**
+ * @description: 
+ * @param {type} 
+ * @return {type} 0 表示成功
+ */
 u8 check_uart_commamd(u8*buf)
 {
 	//u8 command;
@@ -861,9 +908,14 @@ u8 check_uart_commamd(u8*buf)
 	return res;
 }
 
+
 void openUSB(void);
 void closeUSB(void);
-
+/**
+ * @description: 
+ * @param {type} 
+ * @return {type} 
+ */
 static void MainTask(void *p_arg) // test fun
 {
 	
@@ -936,11 +988,15 @@ static void MainTask(void *p_arg) // test fun
         OSTimeDly(10, OS_OPT_TIME_DLY, &err);
     }
 }
-// <e>MainTask
-// 提取参数，
-// 校验 参数
-// instan:"600|10800|3600|3600|12500|800|8|15|1200"
-//mysend_data("01");
+
+
+/**
+ * @description: 提取参数
+ * 校验 参数
+ * instant:"600|10800|3600|3600|12500|800|8|15|1200"
+ * @param {type} 
+ * @return {type} 
+ */
 u8 check_config(u8 *load, u16 len)
 {
 	u8 res=0;
@@ -991,6 +1047,12 @@ u8 check_config(u8 *load, u16 len)
 	return res;
 }
 
+
+/**
+ * @description: 
+ * @param {type} 
+ * @return {type} 
+ */
 u8 check_sever_config(u8 *load, u16 len)
 {
 	u8 res;
@@ -1116,8 +1178,13 @@ void check_response(u8* load, int len)
 		}
 	}
 }
-// <e>MQTTRECEIVEtask
-// 接收MQTT服务器的指令
+
+
+/**
+ * @description: 接收MQTT服务器的指令
+ * @param {type} 
+ * @return {type} 
+ */
 static void MQTTRECEIVEtask(void *p_arg)
 {
     OS_ERR err;
@@ -1220,8 +1287,11 @@ static void MQTTRECEIVEtask(void *p_arg)
 }
 
 
-
-
+/**
+ * @description: 4G模组任务
+ * @param {type} 
+ * @return {type} 
+ */
 static void SIM7100task(void *p_arg)
 {
     OS_ERR err;
@@ -1314,10 +1384,15 @@ static void SIM7100task(void *p_arg)
         OSTimeDly(1000, OS_OPT_TIME_DLY, &err);
     }
 }
-// <e>SIM7100task
+
+
 u16 time_cnt=1;
 char up_down=1;
-// <s>SystemDatasBroadcast
+/**
+ * @description: 
+ * @param {type} 
+ * @return {type} 
+ */
 void  SystemDatasBroadcast (void *p_arg)
 {
 	u32 now_time;
@@ -1409,5 +1484,3 @@ void  SystemDatasBroadcast (void *p_arg)
 		OSTimeDlyHMSM(0,0,10,0,(OS_OPT)OS_OPT_TIME_DLY,(OS_ERR*)&err);  
 	}
 }
-// <e>SystemDatasBroadcast
-

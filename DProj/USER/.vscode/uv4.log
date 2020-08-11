@@ -1,13 +1,28 @@
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Template'
-compiling battery.c...
-..\HARDWARE\BATTERY\battery.c(118): warning:  #111-D: statement is unreachable
-  	printf("*Fail to get Battery data\r\n");
-..\HARDWARE\BATTERY\battery.c(119): warning:  #1-D: last line of file ends without a newline
-  }
-..\HARDWARE\BATTERY\battery.c: 2 warnings, 0 errors
-linking...
-Program Size: Code=142236 RO-data=4160 RW-data=868 ZI-data=119212  
-FromELF: creating hex file...
-"..\OBJ\Template.axf" - 0 Error(s), 2 Warning(s).
-Build Time Elapsed:  00:00:06
+compiling sensor.c...
+..\HARDWARE\SESR\sensor.c(132): error:  #20: identifier "Relay_IO_IN" is undefined
+  	relay_sta = Relay_IO_IN; 
+..\HARDWARE\SESR\sensor.c(6): warning:  #177-D: variable "res"  was declared but never referenced
+  	u8 res;
+..\HARDWARE\SESR\sensor.c: 1 warning, 1 error
+compiling rtc.c...
+..\HARDWARE\RTC\rtc.c(312): error:  #20: identifier "POWER_MP" is undefined
+  	POWER_4G =0;
+..\HARDWARE\RTC\rtc.c: 0 warnings, 1 error
+compiling ec25.c...
+..\APP\EC25\ec25.c(36): error:  #20: identifier "POWER_MP" is undefined
+  	POWER_4G = 1;			 // 打开4G电源
+..\APP\EC25\ec25.c(104): error:  #20: identifier "POWER_MP" is undefined
+  	POWER_4G = 0; // turn off the power
+..\APP\EC25\ec25.c(115): error:  #20: identifier "POWER_MP" is undefined
+  	POWER_4G = 0; // 打开4G电源
+..\APP\EC25\ec25.c(370): warning:  #188-D: enumerated type mixed with another type
+  	return WaitString_OKflag(5000);
+..\APP\EC25\ec25.c(816): warning:  #177-D: variable "ec25_data_csq"  was declared but never referenced
+  	u16 ec25_data_csq;
+..\APP\EC25\ec25.c: 2 warnings, 3 errors
+compiling power.c...
+"..\OBJ\Template.axf" - 5 Error(s), 3 Warning(s).
+Target not created.
+Build Time Elapsed:  00:00:03

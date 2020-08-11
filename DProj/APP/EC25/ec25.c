@@ -33,7 +33,7 @@ EC25_ERR ec25_Init(void)
 	#else
 	F407USART3_Init(921600); // config & fixed
 	#endif
-	POWER_4G = 1;			 // 打开4G电源
+	POWER_D = 1;			 // 打开4G电源
 #if (EN_log_print >= 3)
 	F407USART1_SendString("POWER_4G,ec25_Init\r\n");
 #endif
@@ -101,7 +101,7 @@ void ec25_Turn_off(void)
 #endif
 	WaitString_OKflag(5000);
 	delay_ms(1000);
-	POWER_4G = 0; // turn off the power
+	POWER_D = 0; // turn off the power
 	delay_ms(1000);
 }
 /**
@@ -112,7 +112,7 @@ void ec25_Turn_off(void)
 void ec25_Restart(void)
 {
 	ec25_Turn_off();
-	POWER_4G = 0; // 打开4G电源
+	POWER_D = 0; // 打开4G电源
 	delay_ms(1000);
 	ec25_Init();
 }
@@ -367,7 +367,7 @@ EC25_ERR ec25_TCPDisConnect(void)
 	// 关闭网络，否则可能会打开失败
 	F407USART3_SendString("AT+QICLOSE=0\r\n");
 	F407USART1_SendString("AT+QICLOSE=0\r\n");
-	return WaitString_OKflag(5000);
+	return (EC25_ERR)WaitString_OKflag(5000);
 }
 #if 0
 /**
