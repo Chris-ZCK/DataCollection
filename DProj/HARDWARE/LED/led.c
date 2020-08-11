@@ -79,7 +79,7 @@ void LED_BLUE_OFF(void)
 {
 	ledBLUE = 1;
 }
-void BLED_LUE_NOT(void)
+void LED_BLUE_NOT(void)
 {
 	if(led_on_flag)
 		ledBLUE = !ledBLUE;

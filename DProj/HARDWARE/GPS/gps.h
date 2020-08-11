@@ -16,6 +16,7 @@ typedef struct
 int NMEA_Str2num(u8 *buf,u8*dx);
 //void NMEA_GNGGA_Analysis(nmea_msg *gpsx,u8 *buf);
 void EC25_GNGGA_Analysis(nmea_msg *gpsx,u8 *buf);
+
 extern nmea_msg gpsx;
 #endif
 

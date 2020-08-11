@@ -4,5 +4,5 @@
 void IWDG_Init(u8 prer,u16 rlr);//IWDG³õÊ¼»¯
 void IWDG_Feed(void);  //Î¹¹·º¯Êý
 
-extern int local_time_cnt;
+// extern int local_time_cnt;
 #endif

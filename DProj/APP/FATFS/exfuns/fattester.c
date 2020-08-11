@@ -983,10 +983,18 @@ void mf_config_data_write_flash(u8 *data)
 	printf("*info:STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 }
 
+
+/**
+ * @description: updata sys parameters
+ *	打开SD开
+ *	读取数据
+ *	解析数据buf,len,flash
+ * @param {type} 
+ * @return {type} 
+ */
 void mf_config_data_read_flash(u8 *fbuf)
 {
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
 	printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 	strcpy((char*)fbuf,(const char *)eerom.buf);
-	
 }

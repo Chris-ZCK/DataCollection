@@ -916,7 +916,9 @@ int ec25_QueeryGPS(void)
 	
 	if (res)
 	{
+		/*
 		EC25_GNGGA_Analysis(&gpsx, buff);
+		*/
 		//ec25_data_csq = stringtoNum((char *)buff);
 		printf("Qurry EC25 successful\r\n");
 		delay_ms(100);

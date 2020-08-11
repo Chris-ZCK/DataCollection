@@ -33,6 +33,7 @@ void Data_Packing_sens(char *msg)
 	{
 		
 		ec25_csq = ec25_QueeryCSQ();
+		/*
 		// 判断是否正常获取GPS数据
 		if(gpsx.gpssta!=0) 
 		{
@@ -61,6 +62,7 @@ void Data_Packing_sens(char *msg)
 			gps_altitude = -9999;
 			printf("*GPS is unlocated\r\n");
 		}
+		*/
 	}
 	else
 	{
@@ -92,7 +94,9 @@ void Data_Packing_sens(char *msg)
 	strcat(msg,tempdata);
 	
 	//Battery 
+	/*
 	sprintf(tempdata,"|bv/%s/%d",battery.info,(int)(battery.total_voltage*2));
+	*
 	strcat(msg,tempdata);
 
 	sprintf(tempdata,"|bc//%d",(int)(battery.charge_current*10));
@@ -112,7 +116,7 @@ void Data_Packing_sens(char *msg)
 
 	sprintf(tempdata,"|br//%d",battery.remain_capacity);
 	strcat(msg,tempdata);
-	
+	*/
 	
 	//GPS modle
 	sprintf(tempdata,"|LO/gps/%f",gps_longitude);

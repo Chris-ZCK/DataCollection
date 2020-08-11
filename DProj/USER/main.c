@@ -1,4 +1,5 @@
 #include "sys.h"
+#include "includes.h"
 //UCOSIII中以下优先级用户程序不能使用，ALIENTEK
 //将这些优先级分配给了UCOSIII的5个系统内部任务
 //优先级0：中断服务服务管理任务 OS_IntQTask()
@@ -87,7 +88,7 @@ void SoftReset(void)
 struct cycle_package cycle;
 struct flash_package eerom;
 #define FLASH_WRITE_MODE 0
-// vu16 watchdog_f;
+vu16 watchdog_f;
 vu16 function_f;
 vu16 function_f2;
 vu16 ec25_on_flag;
@@ -131,28 +132,37 @@ void system_init(void)
 	u8 m_buf[100];
 	u16 m_value[9];
 
-	//u16 *m_value;
-
 	// systerm initial
 	delay_init(168);  	// 时钟初始化
-	KEY_Init();	  		// key init
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 中断分组配置
+		
+	#if DEBUG_MODE
+	uart_init(115200); 	// 串口初始化
+	#else
 	uart_init(921600); 	// 串口初始化
+	#endif
 	printf("\r\n\r\n\r\n>>>>>>>>>>>>>>systerm start>>>>>>>>>>>>>>\r\n");
+	
+	KEY_Init();	  		// key init
+	LED_Init();   		// LED init
+	rng_Init();	
+	mqtt_UID_set();
+
 	
 	InitQueue(&Q_stage);  	// 初始化队列 
 	InitQueue(&Q_resent);  	// 初始化队列 	
-	IWDG_Init(IWDG_Prescaler_256,4000); //4,000*256/32,000=32s
+		
+	IWDG_Init(IWDG_Prescaler_256,1000);  // 4,000*256/32,000=32s
+	
 	My_RTC_Init();  //初始化RTC
+	
 	calendar_get_time(&calendar);
 	calendar_get_date(&calendar);
 	printf("DATA:%d-%d-%d	Time:%d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
-    local_time_cnt = calendar.sec;  // 用于看门狗统计
-	// updata sys parameters
-	// 打开SD开
-	// 读取数据
-	// 解析数据buf,len
-	// flash
+    
+	// local_time_cnt = calendar.sec;  // 用于看门狗统计
+	
+
 	mf_config_data_read_flash(m_buf);
 	res = analyze_config_para((char *)m_buf,m_value);
 	if(res==0) // 有意义
@@ -181,32 +191,7 @@ void system_init(void)
 		max_work_length = MAX_RUN_TIME;
 		printf("!analyze_config_para error\r\n");
 	}
-	//SD卡
-	/*
-	res = mf_config_data_read(m_buf);
-	// updata 最新版
-	if(!res)
-	{
-		m_value = analyze_config_para((char *)m_buf);
-		if(m_value) // 有意义
-		{
-			sensor_frequency = m_value[0];
-			camera_frequency = m_value[1]/sensor_frequency;
-			upload_frequency = m_value[2]/sensor_frequency;
-			transfer_photo_frequency = m_value[3]/sensor_frequency;
-			voltage_fuse_threshold = m_value[4];
-			current_fuse_threshold = m_value[5];
-			hardwork_min = m_value[6];
-			hardwork_max = m_value[7];
-			max_work_length = m_value[8];
-			printf("*analyze_config_para\r\n");
-		}
-		else
-		{
-			printf("!analyze_config_para error\r\n");
-		}
-	}
-	*/	
+
 	// sleep mode
 	#if FLASH_WRITE_MODE
 	cycle.time_stamp=get_time_cnt();
@@ -231,6 +216,7 @@ void system_init(void)
 	#else
 	// printf("*cycle data:%d,%d,%d,%d,%x\r\n",cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
 	#endif
+	
 	// 处理休眠机制
 	#if SLEEP_MODE
 	key_scan_fun();
@@ -239,20 +225,21 @@ void system_init(void)
 	{
 		case KEY2_PRES:
 			key_on_flag = 1;
-			printf("$!!!force to execute the task!!!\r\n");
+			printf("/r/n$!!!force to execute the task!!!\r\n");
 			break;
 		case KEY3_PRES:
 			function_f2=1;
 			ec25_on_flag=1;
-			printf("$!!!force not to sleep!!!\r\n");
+			printf("/r/n$!!!force not to sleep!!!\r\n");
 			break;
 		default:
-			printf("$normal start\r\n");
+			printf("*info:normal start\r\n");
 			break;
 	}
 	// 有效数据
 	STMFLASH_Read(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);
 	printf("*info:STMFLASH_Read|time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
+	// 获取时间
 	now_time = get_time_cnt();
 	time_delta = now_time - cycle.time_stamp;  // 正常时>0,或者now_time+3600- cycle.time_stamp>0 ，否则异常，更新时间戳时间
 	printf("*info:count down|next statr time:{(T:%d) %d}\r\n",sensor_frequency,sensor_frequency-time_delta);
@@ -284,32 +271,39 @@ void system_init(void)
 		printf("*info:STMFLASH_Write|time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
 		printf("$!!!force to execute the task,can't sleep!!!\r\n");
 	}
-	
 	#endif
 
+    if (!SD_Init())
+	{
+		printf("*info:SD_Init ok\r\n"); //判断SD卡是否存在
+	}
+	else
+	{
+        printf("*info:SD_Init Error\r\n");
+		// LED 闪烁
+		while(1)
+		{
+			LED_BLUE_NOT();
+			LED_GREEN_NOT();
+			LED_YELLOW_NOT();
+			delay_ms(300);
+		}
+	}
+	mymem_init(SRAMIN);      // 初始化内部内存池
+	exfuns_init();           // 为fatfs相关变量申请内存
+	f_mount(fs[0], "0:", 1); // 挂载SD卡
+	
+	#if EN_log_sd
+	mf_log_init();			 //初始化日志
+	#endif
+	
 	#if USB_MODE
 	usbapp_init();
 	USBH_Init(&USB_OTG_Core,USB_OTG_FS_CORE_ID,&USB_Host,&USBH_MSC_cb,&USR_Callbacks);
 	delay_ms(1000);
-	#endif
-    if (!SD_Init())
-	{
-		printf("*SD_Init ok\r\n"); //判断SD卡是否存在
-	}
-	else
-        printf("*SD_Init Error\r\n");
-	mymem_init(SRAMIN);      //初始化内部内存池
-	exfuns_init();           //为fatfs相关变量申请内存
-	f_mount(fs[0], "0:", 1); //挂载SD卡
-	#if EN_log_sd
-	mf_log_init();			 //初始化日志
-	#endif
-	#if USB_MODE
 	f_mount(fs[1], "1:", 1); //挂载U盘
 	#endif	
-	printf("*****************************************\r\n");
-	printf("**************systerm enter**************\r\n");
-	printf("*****************************************\r\n");
+	
  	printf("--------sys value--------\r\n");
 	printf("sensor_frequency        :%d\r\n",sensor_frequency);
 	printf("camera_frequency        :%d\r\n",camera_frequency);
@@ -323,22 +317,20 @@ void system_init(void)
 	printf("-------------------------\r\n");
 	
 	Power_Ctrl_Init(); // 电源初始化	
-	// sys hardware
-	rng_Init();	
-	LED_Init();   // LED init
-	mqtt_UID_set();
+	
 	#if SENSOR_MODE
-	SHT2x_Init();  //SHT20初始化
-	max44009_initialize();  //MAX44009初始化
-	MS5611_Init();  //MS5611初始化
-	USART2_init(9600); // 电池数据端口初始化
-	Cam_Crtl_Init();   // 相机控制引脚初始化
+	SHT2x_Init();  			// SHT20初始化
+	max44009_initialize();  // MAX44009初始化
+	MS5611_Init();  		// MS5611初始化
+	USART2_init(9600); 		// 电池数据端口初始化
+	Cam_Crtl_Init();   		// 相机控制引脚初始化
 	#endif
 
+	/*
+	// 任务解析部分想要重新加进来，当下的过于死板
 	// 任务解析
-	printf("-------------------------\r\n");
-	printf("#Task analysis...........\r\n");
-	printf("$task count:%d\r\n", cycle.task_cnt);
+	printf("*info:Task analysis...........\r\n");
+	printf("*info:task count:%d\r\n", cycle.task_cnt);
 	
 	function_f|=(0x01);  // 获取数据
 	printf("$ins:get data\r\n");
@@ -406,6 +398,7 @@ void system_init(void)
 	}
 	printf("$function=%x\r\n",function_f);
 	printf("-------------------------\r\n\r\n");
+	*/
 	IWDG_Feed();//喂狗
 }
 
@@ -521,6 +514,14 @@ int main(void)
 	OS_ERR err;
 	CPU_SR_ALLOC();	
 	system_init();		//系统初始化 
+	while(1)
+	{
+		delay_ms(1000);
+		delay_ms(1000);
+		delay_ms(1000);
+		IWDG_Feed();
+	}
+	
 	OSInit(&err);		//初始化UCOSIII
 	OS_CRITICAL_ENTER();//进入临界区			 
 	//创建开始任务
@@ -1309,7 +1310,7 @@ static void SIM7100task(void *p_arg)
 		F407USART1_SendString("*EC25 ec25_Init succeed\r\n");
 		ec25_SynLocalTime();
 		ec25_QueeryCSQ();
-		gpsx.gpssta = ec25_QueeryGPS();
+		// gpsx.gpssta = ec25_QueeryGPS();
 	}
 	else
 	{

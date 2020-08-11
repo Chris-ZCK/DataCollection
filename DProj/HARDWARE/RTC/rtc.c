@@ -46,6 +46,7 @@ ErrorStatus RTC_Set_Date(u8 year,u8 month,u8 date,u8 week)
 //返回值:0,初始化成功;
 //       1,LSE开启失败;
 //       2,进入初始化模式失败;
+extern u32 last_timecount;
 u8 My_RTC_Init(void)
 {
 	RTC_InitTypeDef RTC_InitStructure;
@@ -106,6 +107,7 @@ u8 My_RTC_Init(void)
 		printf("*rtc RCC_LSEConfig2\r\n");
 		RTC_WriteBackupRegister(RTC_BKP_DR0,0x5050);	//标记已经初始化过了
 	} 
+	last_timecount = RTC_GetCounter();  // 获取当前的时间(s)
 	return 0;
 }
 
@@ -381,4 +383,83 @@ void calendar_get_date(_calendar_obj *calendarx)
 }
 
 
+//平年的月份日期表
+const u8 mon_table[12]={31,28,31,30,31,30,31,31,30,31,30,31};
 
+
+//判断是否是闰年函数
+//月份   1  2  3  4  5  6  7  8  9  10 11 12
+//闰年   31 29 31 30 31 30 31 31 30 31 30 31
+//非闰年 31 28 31 30 31 30 31 31 30 31 30 31
+//输入:年份
+//输出:该年份是不是闰年.1,是.0,不是
+u8 Is_Leap_Year(u16 year)
+{			  
+	if(year%4==0) //必须能被4整除
+	{ 
+		if(year%100==0) 
+		{ 
+			if(year%400==0)return 1;//如果以00结尾,还要能被400整除 	   
+			else return 0;   
+		}else return 1;   
+	}else return 0;	
+}	
+
+
+//设置时钟
+//把输入的时钟转换为秒钟
+//以1970年1月1日为基准
+//1970~2099年为合法年份
+//返回值:0,成功;其他:错误代码
+u32 RTC_Get_C(u16 syear,u8 smon,u8 sday,u8 hour,u8 min,u8 sec)
+{
+	u16 t;
+	u32 seccount=0;
+	if(syear<1970||syear>2099)return 1;	   
+	for(t=1970;t<syear;t++)	//把所有年份的秒钟相加
+	{
+		if(Is_Leap_Year(t))seccount+=31622400;//闰年的秒钟数
+		else seccount+=31536000;			  //平年的秒钟数
+	}
+	smon-=1;
+	for(t=0;t<smon;t++)	   //把前面月份的秒钟数相加
+	{
+		seccount+=(u32)mon_table[t]*86400;//月份秒钟数相加
+		if(Is_Leap_Year(syear)&&t==1)seccount+=86400;//闰年2月份增加一天的秒钟数	   
+	}
+	seccount+=(u32)(sday-1)*86400;//把前面日期的秒钟数相加 
+	seccount+=(u32)hour*3600;//小时秒钟数
+    seccount+=(u32)min*60;	 //分钟秒钟数
+	seccount+=sec;//最后的秒钟加上去
+ 
+ 	return seccount;	
+}    
+
+
+/**
+ * @description: 获取秒计数
+ * @param {type} 
+ * @return {type} 
+ */
+u32 RTC_GetCounter(void)
+{
+	u16 seccount=0;
+	u16 syear, smon, sday, hour, min, sec;
+
+	RTC_DateTypeDef RTC_DateStruct;
+	RTC_TimeTypeDef RTC_TimeTypeInitStructure;
+	
+	RTC_GetDate(RTC_Format_BIN, &RTC_DateStruct);
+	syear=RTC_DateStruct.RTC_Year;
+	smon=RTC_DateStruct.RTC_Month;
+	sday=RTC_DateStruct.RTC_Date;
+
+	RTC_GetTime(RTC_Format_BIN,&RTC_TimeTypeInitStructure);
+	hour=RTC_TimeTypeInitStructure.RTC_Hours;
+	min=RTC_TimeTypeInitStructure.RTC_Minutes;
+	sec=RTC_TimeTypeInitStructure.RTC_Seconds;
+
+	seccount = RTC_Get_C(syear+2000, smon, sday, hour, min, sec);
+	// printf("seccount=%d,%d,%d,%d,%d,%d,%d,", seccount, syear, smon, sday, hour, min, sec);	
+	return seccount;
+}

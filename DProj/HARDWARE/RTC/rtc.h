@@ -76,9 +76,12 @@ void Sys_Enter_Standby(u32 time_seconed);
 
 void RTC_Get_Time(u8 *hour,u8 *min,u8 *sec,u8 *ampm);
 void RTC_Get_Date(u8 *year,u8 *month,u8 *date,u8 *week);
+u32 RTC_GetCounter(void);
 void calendar_get_time(_calendar_obj *calendarx);
 void calendar_get_date(_calendar_obj *calendarx);
 int my_RTC_Set_Time(_calendar_obj calendar);
+
+
 #endif
 
 

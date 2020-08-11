@@ -63,8 +63,10 @@ int NMEA_Str2num(u8 *buf,u8*dx)
 	res=ires*NMEA_Pow(10,flen)+fres;
 	if(mask&0X02)res=-res;		   
 	return res;
-}  							 
+}
+
 nmea_msg gpsx;
+
 #if 0
 //+QGPSGNMEA: $GPGGA,103647.0,3150.721154,N,11711.925873,E,1,02,4.7,59.8,M,-2.0,M,,*77
 //分析GNGGA信息(海拔高度)
