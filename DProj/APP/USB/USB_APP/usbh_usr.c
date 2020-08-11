@@ -177,7 +177,7 @@ void USBH_USR_Init(void)
 	USB_OTG_WRITE_REG32(&USB_OTG_Core.regs.GREGS->GINTMSK, intmsk.d32);
 	printf("USB OTG HS MSC Host\r\n");
 	printf("> USB Host library started.\r\n");
-	printf("  USB Host Library v2.1.0\r\n\r\n");
+	printf("> USB Host Library v2.1.0\r\n");
 }
 //ºÏ≤‚µΩU≈Ã≤Â»Î
 void USBH_USR_DeviceAttached(void) //U≈Ã≤Â»Î

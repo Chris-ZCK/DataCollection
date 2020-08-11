@@ -117,6 +117,32 @@ u8 mf_opendir(u8* path)
 {
 	return f_opendir(&dir,(const TCHAR*)path);	
 }
+
+
+/**
+ * @description: 检查并创建目录
+ * @param {type} 
+ * @return {type} 
+ */
+u8 mf_check_dir(u8* path)
+{
+	if(mf_opendir(path)!=FR_OK)
+	{
+		if(mf_mkdir(path)==FR_OK)
+		{
+			printf("Create directory %s.\r\n", path);
+		}
+		else
+		{
+			printf("ERROR:Fail to create directory. %s @!!!!!!!!!!!!!!!\r\n", path);
+		}
+	}
+	else
+	{
+		printf("Directory %s already exists.\r\n", path);
+	}
+
+}
 //关闭目录 
 //返回值:执行结果
 u8 mf_closedir(void)
@@ -174,11 +200,11 @@ u8 mf_scan_files(u8 * path)
  	fileinfo.lfsize = _MAX_LFN * 2 + 1;
 	fileinfo.lfname = mymalloc(SRAMIN,fileinfo.lfsize);
 #endif		  
-	printf("*scan files path:%s\r\n",path);
+	printf("*scan files path:<%s>, the details are as follows:\r\n",path);
     res = f_opendir(&dir,(const TCHAR*)path); //打开一个目录
     if (res == FR_OK) 
 	{	
-		printf("\r\n"); 
+		// printf("\r\n"); 
 		while(1)
 		{
 	        res = f_readdir(&dir, &fileinfo);                   //读取目录下的一个文件
@@ -192,6 +218,7 @@ u8 mf_scan_files(u8 * path)
 			printf("%s/", path);//打印路径	
 			printf("%s\r\n",  fn);//打印文件名	  
 		} 
+		printf("Above are all the directories.\r\n");
     }	  
 	myfree(SRAMIN,fileinfo.lfname);
     return res;	  
@@ -828,17 +855,17 @@ u8 mf_log_init(void)
 			sd_ready_flag =0xAA;
 			if(send_log_flag==0)  // 第一次启动才需要把系统参数打印出来
 			{
-				printf("##################sd write###############\r\n");
-				printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n");
-				printf("*mf_log_init\r\n");
+				printf("\r\n##################sd log data###############\r\n");
+				//printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n");
+				printf("Start logging the log data and write to file log.dat\r\n");
 				calendar_get_time(&calendar);
 				calendar_get_date(&calendar);
-				printf("*DATA:%d-%d-%d	Time:%d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+				printf("Timestamp:%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 				send_log_flag++;
 			}
 			else
 			{
-				printf("******************sd write***************\r\n");
+				printf("******************sd log data***************\r\n");
 				printf("*****************************************\r\n");
 				printf("*info:mf_log_init,time:%d\r\n" ,send_log_flag);
 			}
@@ -848,7 +875,7 @@ u8 mf_log_init(void)
 	else
 	{
 		sd_ready_flag =0;
-		printf("*!error:mf_log_init|res=%d\r\n",res);
+		printf("ERROR:mf_log_init|res=%d\r\n",res);
 	}
 	return res;
 }

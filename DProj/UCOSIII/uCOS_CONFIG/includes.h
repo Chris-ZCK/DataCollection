@@ -114,12 +114,14 @@ extern struct flash_package eerom;
 #define POWER_4G		POWER_MP   
 
 // global switch
-#define DEBUG_MODE  1
-#define SLEEP_MODE  0 
-#define USB_MODE    1
-#define SENSOR_MODE 0
+#define DEBUG_MODE    1
+#define SLEEP_MODE    0 
+#define USB_MODE      1
+#define SENSOR_MODE   0
+
+#define UART_CMD_MODE 0
 // Global macro definition
-#define EN_log_print 	2
+#define EN_log_print  2
 // Global use
 // 0 都不打印 
 // 1 重要信息

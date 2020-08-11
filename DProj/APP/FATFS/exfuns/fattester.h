@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-08-10 17:34:15
+ * @LastEditTime: 2020-08-12 06:47:10
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \USERd:\Documents\GitProject\DataCollection\DProj\APP\FATFS\exfuns\fattester.h
+ */
 #ifndef __FATTESTER_H
 #define __FATTESTER_H 			   
 #include <stm32f4xx.h>	   
@@ -41,6 +49,7 @@ void mf_config_data_write_flash(u8 *data);
 void mf_config_data_read_flash(u8 *fbuf);
 void mf_send_log(void);
 extern u8 sd_ready_flag;
+u8 mf_check_dir(u8* path);
 #endif
 
 

@@ -29,31 +29,31 @@ static void  MainTask(void* p_arg);
 
 
 /* 接收MQTT指令 */
-#define MQTTRECEIVE_PRIO								7
+#define MQTTReceive_PRIO								7
 //任务堆栈大小32bit
-#define CPU_STK_MQTTRECEIVE_SIZE						1000
+#define CPU_STK_MQTTReceive_SIZE						1000
 //时间片长度
-#define MQTTRECEIVE_TICK_LEN							0
-static  OS_TCB											MQTTRECEIVEtcb;
-static	CPU_STK											MQTTRECEIVEstk[CPU_STK_MQTTRECEIVE_SIZE];
-static void  MQTTRECEIVEtask(void* p_arg);
+#define MQTTReceive_TICK_LEN							0
+static  OS_TCB											MQTTReceivetcb;
+static	CPU_STK											MQTTReceivestk[CPU_STK_MQTTReceive_SIZE];
+static void  MQTTReceiveTask(void* p_arg);
 
 /* 发送MQTT指令 */
-#define SIM7100_PRIO									8
+#define LTEModule_PRIO									8
 //任务堆栈大小32bit
-#define CPU_STK_SIM7100_SIZE							1000
+#define CPU_STK_LTEModule_SIZE							1000
 //时间片长度
-#define SIM7100_TICK_LEN								0
-static  OS_TCB											SIM7100tcb;
-static	CPU_STK											SIM7100stk[CPU_STK_SIM7100_SIZE];
-static void  SIM7100task(void* p_arg);
+#define LTEModule_TICK_LEN								0
+static  OS_TCB											LTEModuletcb;
+static	CPU_STK											LTEModulestk[CPU_STK_LTEModule_SIZE];
+static void  LTEModuleTask(void* p_arg);
 
 /* Watch task */
-#define HELLO_LED_PRIO									10
-#define CPU_STK_HELLO_LED_SIZE							2000
-#define HELLO_LED_TICK_LEN								0
-static  OS_TCB											HELLO_LEDtcb;
-static	CPU_STK											HELLO_LEDstk[CPU_STK_HELLO_LED_SIZE];
+#define SysWatch_PRIO									10
+#define CPU_STK_SysWatch_SIZE							2000
+#define SysWatch_TICK_LEN								0
+static  OS_TCB											SysWatchtcb;
+static	CPU_STK											SysWatchstk[CPU_STK_SysWatch_SIZE];
 static void  SysWatchTask(void* p_arg);
 
 #define  SystemDatasBroadcast_PRIO                      11 // 统计任务优先级最低，我这里是12，已经低于其他任务的优先级了
@@ -126,7 +126,7 @@ void system_init(void)
 	// watchdog_f=0;
 	function_f = 0;  // 任务执行标志清零
 	function_f2 = 0;
-	ec25_on_flag = 0;
+	ec25_on_flag = 1;  // 测试模式
 	key_on_flag = 0; // 任务执行标志清零
 	led_on_flag = 0;
 	u8 m_buf[100];
@@ -152,17 +152,16 @@ void system_init(void)
 	InitQueue(&Q_stage);  	// 初始化队列 
 	InitQueue(&Q_resent);  	// 初始化队列 	
 		
-	IWDG_Init(IWDG_Prescaler_256,1000);  // 4,000*256/32,000=32s
+	IWDG_Init(IWDG_Prescaler_256,4000);  // 4,000*256/32,000=32s
 	
 	My_RTC_Init();  //初始化RTC
 	
 	calendar_get_time(&calendar);
 	calendar_get_date(&calendar);
-	printf("DATA:%d-%d-%d	Time:%d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	printf("Timestamp:%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
     
 	// local_time_cnt = calendar.sec;  // 用于看门狗统计
 	
-
 	mf_config_data_read_flash(m_buf);
 	res = analyze_config_para((char *)m_buf,m_value);
 	if(res==0) // 有意义
@@ -275,11 +274,12 @@ void system_init(void)
 
     if (!SD_Init())
 	{
-		printf("*info:SD_Init ok\r\n"); //判断SD卡是否存在
+		printf("SD_Init ok\r\n"); //判断SD卡是否存在
+		// 访问文件夹
 	}
 	else
 	{
-        printf("*info:SD_Init Error\r\n");
+        printf("ERROR:SD_Init failed!!!!!!!!!!\r\n");
 		// LED 闪烁
 		while(1)
 		{
@@ -292,7 +292,10 @@ void system_init(void)
 	mymem_init(SRAMIN);      // 初始化内部内存池
 	exfuns_init();           // 为fatfs相关变量申请内存
 	f_mount(fs[0], "0:", 1); // 挂载SD卡
-	
+	mf_scan_files((u8*)"0:");
+	mf_check_dir((u8*)"0:INBOX");
+	mf_check_dir((u8*)"0:ARCH");
+
 	#if EN_log_sd
 	mf_log_init();			 //初始化日志
 	#endif
@@ -406,6 +409,8 @@ void system_init(void)
 /**
  * @description: 分析参数
  * @param {type} 
+ * buf 参数缓存地址
+ * val 解析结果存放数组
  * @return {type} 
  * 0      分析成功
  * 100    不需要更新
@@ -512,16 +517,8 @@ u8 analyze_config_para(char *buf, u16 * val)
 int main(void)
 {
 	OS_ERR err;
-	CPU_SR_ALLOC();	
+	CPU_SR_ALLOC();
 	system_init();		//系统初始化 
-	while(1)
-	{
-		delay_ms(1000);
-		delay_ms(1000);
-		delay_ms(1000);
-		IWDG_Feed();
-	}
-	
 	OSInit(&err);		//初始化UCOSIII
 	OS_CRITICAL_ENTER();//进入临界区			 
 	//创建开始任务
@@ -555,20 +552,21 @@ void start_task(void *p_arg)
 	p_arg = p_arg;
 	
 	CPU_Init();
-#if OS_CFG_STAT_TASK_EN > 0u
-   OSStatTaskCPUUsageInit(&err);  	//统计任务                
-#endif
+	#if OS_CFG_STAT_TASK_EN > 0u
+   	OSStatTaskCPUUsageInit(&err);  	// 统计任务                
+	#endif
 	
-#ifdef CPU_CFG_INT_DIS_MEAS_EN		//如果使能了测量中断关闭时间
+	#ifdef CPU_CFG_INT_DIS_MEAS_EN		// 如果使能了测量中断关闭时间
     CPU_IntDisMeasMaxCurReset();	
-#endif
+	#endif
 	
-#if	OS_CFG_SCHED_ROUND_ROBIN_EN  //当使用时间片轮转的时候
-	 //使能时间片轮转调度功能,时间片长度为1个系统时钟节拍，既1*5=5ms
+	#if	OS_CFG_SCHED_ROUND_ROBIN_EN  	// 当使用时间片轮转的时候
+	//使能时间片轮转调度功能,时间片长度为1个系统时钟节拍，既1*5=5ms
 	OSSchedRoundRobinCfg(DEF_ENABLED,1,&err);  
-#endif		
+	#endif		
 	
 	OS_CRITICAL_ENTER();	//进入临界区
+
     // stackMonitoring
     OSTaskCreate((OS_TCB *)&SystemDatasBroadcast_TCB,
                  (CPU_CHAR *)"SystemDatasBroadcast",
@@ -576,55 +574,55 @@ void start_task(void *p_arg)
                  (void *)0,
                  (OS_PRIO)SystemDatasBroadcast_PRIO,
                  (CPU_STK *)&SystemDatasBroadcast_STK[0],
-                 (CPU_STK_SIZE)SystemDatasBroadcast_STK_SIZE / 10, /*栈溢出临界值我设置在栈大小的90%处*/
+                 (CPU_STK_SIZE)SystemDatasBroadcast_STK_SIZE / 10, /*栈溢出临界值设置在栈大小的90%处*/
                  (CPU_STK_SIZE)SystemDatasBroadcast_STK_SIZE,
                  (OS_MSG_QTY)0,
                  (OS_TICK)0,
                  (void *)0,
                  (OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
                  (OS_ERR *)&err);
-	//
-    OSTaskCreate((OS_TCB *)&MQTTRECEIVEtcb,
-                 (CPU_CHAR *)"MQTTRECEIVE",
-                 (OS_TASK_PTR)MQTTRECEIVEtask,
-                 (void *)0,
-                 (OS_PRIO)MQTTRECEIVE_PRIO,
-                 (CPU_STK *)&MQTTRECEIVEstk[0],
-                 (CPU_STK_SIZE)CPU_STK_MQTTRECEIVE_SIZE / 10,
-                 (CPU_STK_SIZE)CPU_STK_MQTTRECEIVE_SIZE,
-                 (OS_MSG_QTY)0,
-                 (OS_TICK)MQTTRECEIVE_TICK_LEN,
-                 (void *)0,
-                 (OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
-                 (OS_ERR *)&err);
 	if(ec25_on_flag==1)
 	{
-    //
-    OSTaskCreate((OS_TCB *)&SIM7100tcb,
-                 (CPU_CHAR *)"SIM7100",
-                 (OS_TASK_PTR)SIM7100task,
-                 (void *)0,
-                 (OS_PRIO)SIM7100_PRIO,
-                 (CPU_STK *)&SIM7100stk[0],
-                 (CPU_STK_SIZE)CPU_STK_SIM7100_SIZE / 10,
-                 (CPU_STK_SIZE)CPU_STK_SIM7100_SIZE,
-                 (OS_MSG_QTY)0,
-                 (OS_TICK)SIM7100_TICK_LEN,
-                 (void *)0,
-                 (OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
-                 (OS_ERR *)&err);
-	 }
+		OSTaskCreate((OS_TCB *)&MQTTReceivetcb,
+					(CPU_CHAR *)"MQTTReceive",
+					(OS_TASK_PTR)MQTTReceiveTask,
+					(void *)0,
+					(OS_PRIO)MQTTReceive_PRIO,
+					(CPU_STK *)&MQTTReceivestk[0],
+					(CPU_STK_SIZE)CPU_STK_MQTTReceive_SIZE / 10,
+					(CPU_STK_SIZE)CPU_STK_MQTTReceive_SIZE,
+					(OS_MSG_QTY)0,
+					(OS_TICK)MQTTReceive_TICK_LEN,
+					(void *)0,
+					(OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+					(OS_ERR *)&err);
+
+		OSTaskCreate((OS_TCB *)&LTEModuletcb,
+					(CPU_CHAR *)"LTEModule",
+					(OS_TASK_PTR)LTEModuleTask,
+					(void *)0,
+					(OS_PRIO)LTEModule_PRIO,
+					(CPU_STK *)&LTEModulestk[0],
+					(CPU_STK_SIZE)CPU_STK_LTEModule_SIZE / 10,
+					(CPU_STK_SIZE)CPU_STK_LTEModule_SIZE,
+					(OS_MSG_QTY)0,
+					(OS_TICK)LTEModule_TICK_LEN,
+					(void *)0,
+					(OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+					(OS_ERR *)&err);
+	}
+
     // watchTask
-    OSTaskCreate((OS_TCB *)&HELLO_LEDtcb,
-                 (CPU_CHAR *)"HELLO_LED",
+    OSTaskCreate((OS_TCB *)&SysWatchtcb,
+                 (CPU_CHAR *)"SysWatch",
                  (OS_TASK_PTR)SysWatchTask,
                  (void *)0,
-                 (OS_PRIO)HELLO_LED_PRIO,
-                 (CPU_STK *)&HELLO_LEDstk[0],
-                 (CPU_STK_SIZE)CPU_STK_HELLO_LED_SIZE / 10,
-                 (CPU_STK_SIZE)CPU_STK_HELLO_LED_SIZE,
+                 (OS_PRIO)SysWatch_PRIO,
+                 (CPU_STK *)&SysWatchstk[0],
+                 (CPU_STK_SIZE)CPU_STK_SysWatch_SIZE / 10,
+                 (CPU_STK_SIZE)CPU_STK_SysWatch_SIZE,
                  (OS_MSG_QTY)0,
-                 (OS_TICK)HELLO_LED_TICK_LEN,
+                 (OS_TICK)SysWatch_TICK_LEN,
                  (void *)0,
                  (OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
                  (OS_ERR *)&err);
@@ -643,12 +641,12 @@ void start_task(void *p_arg)
                  (OS_OPT)(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), //
                  (OS_ERR *)&err);      
 				 
-	OS_CRITICAL_EXIT();	//退出临界区
-	OSTaskDel((OS_TCB*)0,&err);	//删除start_task任务自身
+	OS_CRITICAL_EXIT();			// 退出临界区
+	OSTaskDel((OS_TCB*)0,&err);	// 删除start_task任务自身
 }
 
 
-static u8 local_memdevflag=0;  
+static u8 local_memdevflag=0;  // 
 /**
  * @description: 
  * @param {type} 
@@ -673,7 +671,7 @@ void  SysWatchTask(void *pdata)
 				{
 					if(local_memdevflag==0)
 					{
-						fs[1]->drv=2;  // 暂时认为也可以不加,我认为可能是重命名
+						fs[1]->drv=2;  			// 暂时认为也可以不加,我认为可能是重命名
 						f_mount(fs[1],"1:",1); 	// 重新挂载U盘
 						usbapp_user_app();
 
@@ -918,23 +916,20 @@ void closeUSB(void);
  * @return {type} 
  */
 static void MainTask(void *p_arg) // test fun
-{
-	
+{	
     OS_ERR err;
     //u8 res;
-	F407USART1_SendString("MainTask run\r\n");
+	printf("MainTask run\r\n");
 	delay_ms(500);  
 	while (1)
     {
-		////////////////check uart///////////////////////
-		if(USART_RX_STA &= 0x8000)
+		#if UART_CMD_MODE
+		if(USART_RX_STA &= 0x8000)  // 接受串口的指令
 		{
 			check_uart_commamd(USART_RX_BUF);
 			USART_RX_STA = 0;
 		}
-		// 不需要联网
-		// MQTT联网状态执行的任务
-		
+		#endif
 		// 不需要联网 或者 联网成功
 		if((ec25_on_flag==0) || (mqtt_state_get() == 1)) 
 		{
@@ -1186,7 +1181,7 @@ void check_response(u8* load, int len)
  * @param {type} 
  * @return {type} 
  */
-static void MQTTRECEIVEtask(void *p_arg)
+static void MQTTReceiveTask(void *p_arg)
 {
     OS_ERR err;
 	int type; // 解析接收的数据值
@@ -1207,7 +1202,7 @@ static void MQTTRECEIVEtask(void *p_arg)
 	int test_cnt=0;
     //==============================
     u8 flag=1;  // 仅仅发送一次数据
-	F407USART1_SendString("MQTTRECEIVEtask run\r\n");
+	printf("MQTTReceiveTask run\r\n");
 	delay_ms(500);  
 
 	while (1)
@@ -1293,7 +1288,7 @@ static void MQTTRECEIVEtask(void *p_arg)
  * @param {type} 
  * @return {type} 
  */
-static void SIM7100task(void *p_arg)
+static void LTEModuleTask(void *p_arg)
 {
     OS_ERR err;
 	EC25_ERR res;
@@ -1301,16 +1296,16 @@ static void SIM7100task(void *p_arg)
 	static u8 mqtt_connect_flag=0;
 	static u8 f_reconnect=0; 
 	
-    F407USART1_SendString("SIM7100task run\r\n");
+    printf("LTEModuleTask run\r\n");
 	delay_ms(500);
 	
 	res = ec25_Init();  // 初始化4G模组并联网
 	if(res == EC25_ERR_NONE)
-	{
-		F407USART1_SendString("*EC25 ec25_Init succeed\r\n");
+	{ 
+		printf("*EC25 ec25_Init succeed\r\n");
 		ec25_SynLocalTime();
 		ec25_QueeryCSQ();
-		// gpsx.gpssta = ec25_QueeryGPS();
+		/* gpsx.gpssta = ec25_QueeryGPS();*/
 	}
 	else
 	{
@@ -1414,23 +1409,23 @@ void  SystemDatasBroadcast (void *p_arg)
 		#if DEBUG_MODE 
 		#if USART1_DEBUG
 		OSTaskStkChk (&SystemDatasBroadcast_TCB,&free,&used,&err);
-		printf("SystemDatasBroadcast  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+		printf("SystemDatasBroadcast    used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
 		#endif
 		OSTaskStkChk (&MainTaskTCB,&free,&used,&err);
 		#if USART1_DEBUG
 		printf("MainTaskTCB             used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
 		#endif	
-		OSTaskStkChk (&MQTTRECEIVEtcb,&free,&used,&err);
+		OSTaskStkChk (&MQTTReceivetcb,&free,&used,&err);
 		#if USART1_DEBUG
-		printf("MQTTRECEIVEtcb             used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+		printf("MQTTReceive             used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
 		#endif	
-		OSTaskStkChk (&SIM7100tcb,&free,&used,&err);
+		OSTaskStkChk (&LTEModuletcb,&free,&used,&err);
 		#if USART1_DEBUG
-		printf("SIM7100tcb              used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+		printf("LTEModuletcb             used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
 		#endif	
-		OSTaskStkChk (&HELLO_LEDtcb,&free,&used,&err);
+		OSTaskStkChk (&SysWatchtcb,&free,&used,&err);
 		#if USART1_DEBUG
-		printf("HELLO_LEDtcb             used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+		printf("SysWatchtcb             used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
 		#endif
 		if(watchdog_f*10>7200) //1h,SoftReset
 		{

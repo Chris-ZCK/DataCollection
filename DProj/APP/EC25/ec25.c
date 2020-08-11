@@ -746,14 +746,14 @@ uint16_t ec25_SynLocalTime(void)
 		{
 			calendar_get_time(&calendar);
 			calendar_get_date(&calendar);
-			printf("DATA:%d-%d-%d	Time:%d:%d:%d*\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+			printf("Timestamp:%d/%d/%d %d:%d:%d*\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 			calendar.w_year=stringtoNum((char *)buff+3);
 			calendar.w_month=stringtoNum((char *)buff+8);
 			calendar.w_date=stringtoNum((char *)buff+11);
 			calendar.hour=stringtoNum((char *)buff+14);
 			calendar.min=stringtoNum((char *)buff+17);
 			calendar.sec=stringtoNum((char *)buff+20);
-			printf("DATA:%d-%d-%d	Time:%d:%d:%d#\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+			printf("Timestamp:%d/%d/%d %d:%d:%d#\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 			my_RTC_Set_Time(calendar);
 		}
 		else
