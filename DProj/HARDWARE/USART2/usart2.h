@@ -14,7 +14,7 @@ void F407USART2_SendString(char *str);
 // Just for UART_TCPbuff
 #define F407USART2_RECEIVE_BUFF_ENABLE		1
 #if (F407USART2_RECEIVE_BUFF_ENABLE==1)
-#define F407USART2_RECEIVE_BUFF_SIZE		2048
+#define F407USART2_RECEIVE_BUFF_SIZE		1024
 uint8_t F407USART2_buffWrite(uint8_t data);
 uint8_t F407USART2_buffWrites(uint8_t *data,uint16_t length);
 

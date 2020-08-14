@@ -154,6 +154,11 @@ uint8_t BytesAddOnenumber(uint8_t *Bytes,uint8_t BytesLength,uint8_t MaxLength,u
 
 //////////////////////CRC
 #define POLY 0xa001
+/**
+ * @description: CRE校验
+ * @param {type} 
+ * @return {type} 
+ */
 unsigned short ModBusCRC(unsigned char *buf, unsigned int lenth)
 {
 	int i, j;
@@ -173,6 +178,11 @@ unsigned short ModBusCRC(unsigned char *buf, unsigned int lenth)
 	return crc;
 }
 //////////////////////UID
+/**
+ * @description: 获得MCU的唯一ID
+ * @param {type} 
+ * @return {type} 
+ */
 u32 Frame_UID_get(void)
 {
 	u32 uid = 0;
@@ -187,11 +197,13 @@ u32 Frame_UID_get(void)
 	return uid;
 }
 //////////////////////
-
-double get_time_cnt (void)
+/**
+ * @description: 获得当前时间的计数
+ * 再次封装的上层函数，返回时间的计数值
+ * @param {type} 
+ * @return {type} 
+ */
+double get_time_cnt(void)
 {	
-	u32 time=0;
-	calendar_get_time(&calendar);
-	time=(calendar.hour)*3600+(calendar.min)*60+calendar.sec;
-	return time;
+	return RTC_GetCounter();
 }	

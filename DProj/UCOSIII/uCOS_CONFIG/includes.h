@@ -120,13 +120,19 @@ extern struct flash_package eerom;
 #define SENSOR_MODE   0
 
 #define UART_CMD_MODE 0
+
 // Global macro definition
-#define EN_log_print  2
+#define EN_log_print  3
 // Global use
 // 0 都不打印 
 // 1 重要信息
 // 2 一般信息
 // 3 调试信息
+// 4 其他信息
+
+#define BATTERY_VERSION   2
+// 1 老版本
+// 2 新版本
 
 // Sys cycle, unit:s
 #define CYCLE_TIME 		1800
