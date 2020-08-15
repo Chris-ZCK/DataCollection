@@ -117,11 +117,12 @@ vu16 max_work_length = MAX_RUN_TIME;
   */
 void system_init(void)
 {
-	// u8 res;
-
+	u8 res;
+	u8  m_buf[100];
+	u16 m_value[9];
 	// local variable
-	// u32 now_time;
-	// int time_delta;
+	u32 now_time;
+	int time_delta;
 
 	// global various
 	// watchdog_f=0;
@@ -130,8 +131,7 @@ void system_init(void)
 	ec25_on_flag = 1;  // 测试模式
 	key_on_flag = 0; // 任务执行标志清零
 	led_on_flag = 0;
-	// u8 m_buf[100];
-	// u16 m_value[9];
+
 
 	// systerm initial
 	delay_init(168);  	// 时钟初始化
@@ -163,6 +163,11 @@ void system_init(void)
 	// local_time_cnt = calendar.sec;  // 用于看门狗统计
 	
 	#if ANAY_TASK_ON
+	// updata sys parameters
+	// 打开SD开
+	// 读取数据
+	// 解析数据buf,len
+	// flash
 	mf_config_data_read_flash(m_buf);
 	res = analyze_config_para((char *)m_buf,m_value);
 	if(res==0) // 有意义
@@ -176,7 +181,7 @@ void system_init(void)
 		hardwork_min = m_value[6];
 		hardwork_max = m_value[7];
 		max_work_length = m_value[8];
-		printf("*analyze_config_para update finish^^^^^\r\n");
+		printf("[LOG]analyze_config_para update finish^^^^^\r\n");
 	}
 	else
 	{
@@ -189,9 +194,10 @@ void system_init(void)
 		hardwork_min = TD_C_H_S;
 		hardwork_max = TD_C_H_E;
 		max_work_length = MAX_RUN_TIME;
-		printf("!analyze_config_para error\r\n");
+		printf("[LOG]None Stored parameters, use default values\r\n");
 	}
 	#endif
+	
 	// sleep mode
 	#if FLASH_WRITE_MODE
 	cycle.time_stamp=get_time_cnt();
@@ -201,20 +207,8 @@ void system_init(void)
 	cycle.watch_cnt=30;
 	STMFLASH_Write(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);	// 将初始化参数写入寄存器
 	while(1);
-
-	//	now_time = get_time_cnt();
-	//	if(now_time<cycle.time_stamp)
-	//		now_time+=3600;
-	//	time_delta = now_time - cycle.time_stamp;
-	//	printf("cycle2:%d,%d,%d,%d,%d,%d,%x\r\n",time_delta,now_time,cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
-
-	//	cycle.time_stamp=get_time_cnt(); // 更新时间戳
-	//	cycle.task_cnt ++;
-	//	cycle.function=0;
-	//	printf("cycle3:%d,%d,%d,%d,%d,%d,%x\r\n",time_delta,now_time,cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
-	//	STMFLASH_Write(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);
 	#else
-	// printf("*cycle data:%d,%d,%d,%d,%x\r\n",cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
+	printf("[INFO]cycle data:%d,%d,%d,%d,%x\r\n",cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
 	#endif
 	
 	// 处理休眠机制
@@ -225,24 +219,25 @@ void system_init(void)
 	{
 		case KEY2_PRES:
 			key_on_flag = 1;
-			printf("/r/n$!!!force to execute the task!!!\r\n");
+			printf("[INST]force to execute the task!!!\r\n");
 			break;
 		case KEY3_PRES:
 			function_f2=1;
 			ec25_on_flag=1;
-			printf("/r/n$!!!force not to sleep!!!\r\n");
+			printf("[INST]force not to sleep!!!\r\n");
 			break;
 		default:
-			printf("*info:normal start\r\n");
+			printf("[INFO]normal start systerm\r\n");
 			break;
 	}
 	// 有效数据
 	STMFLASH_Read(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);
-	printf("*info:STMFLASH_Read|time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
+	printf("[INFO]STMFLASH_Read:");
+	printf("*time_stamp:%d\r\n*task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
 	// 获取时间
 	now_time = get_time_cnt();
 	time_delta = now_time - cycle.time_stamp;  // 正常时>0,或者now_time+3600- cycle.time_stamp>0 ，否则异常，更新时间戳时间
-	printf("*info:count down|next statr time:{(T:%d) %d}\r\n",sensor_frequency,sensor_frequency-time_delta);
+	printf("[INFO]count down|next statr time:{(T:%d) %d}\r\n",sensor_frequency,sensor_frequency-time_delta);
 	if(!key_on_flag && !function_f2)  // 休眠 
 	{
 		if(time_delta <0)
@@ -252,11 +247,11 @@ void system_init(void)
 			cycle.time_stamp=now_time;  // 更新时间戳
 			cycle.task_cnt ++;		
 			STMFLASH_Write(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);
-			printf("*info:STMFLASH_Write|time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
+			printf("[INFO]STMFLASH_Write#time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
 		}
 		else 
 		{
-			printf("*watchdog sleep\r\n");
+			printf("[LOG]watchdog sleep\r\n");
 			if((sensor_frequency-time_delta)>STANDBY_TIME)
 				Sys_Enter_Standby(STANDBY_TIME);
 			else
@@ -306,10 +301,10 @@ void system_init(void)
 	#endif	
 	
  	printf("--------sys value--------\r\n");
-	printf("sensor_frequency        :%d\r\n",sensor_frequency);
-	printf("camera_frequency        :%d\r\n",camera_frequency);
-	printf("upload_frequency        :%d\r\n",upload_frequency);
-	printf("transfer_photo_frequency:%d\r\n",transfer_photo_frequency);
+	printf("sensor_frequency        :%d s\r\n",sensor_frequency);
+	printf("camera_frequency        :%d s\r\n",camera_frequency*sensor_frequency);
+	printf("upload_frequency        :%d s\r\n",upload_frequency*sensor_frequency);
+	printf("transfer_photo_frequency:%d s\r\n",transfer_photo_frequency*sensor_frequency);
 	printf("voltage_fuse_threshold  :%d\r\n",voltage_fuse_threshold);
 	printf("current_fuse_threshold  :%d\r\n",current_fuse_threshold);
 	printf("hardwork_min            :%d\r\n",hardwork_min);
@@ -331,74 +326,75 @@ void system_init(void)
 	#if ANAY_TASK_ON
 	// 任务解析部分想要重新加进来，当下的过于死板
 	// 任务解析
-	printf("*info:Task analysis...........\r\n");
-	printf("*info:task count:%d\r\n", cycle.task_cnt);
+	printf("[LOG]Task analysis...........\r\n");
+	printf("[INFO]task count:%d\r\n", cycle.task_cnt);
 	
 	function_f|=(0x01);  // 获取数据
-	printf("$ins:get data\r\n");
+	printf("[INFO]get data\r\n");
 
 	if(cycle.task_cnt%camera_frequency==0 || key_on_flag) 
 	{
 		function_f|=(0x02);  // 拍照
-		printf("$ins:take photo\r\n");		
+		printf("[INFO]take photo\r\n");		
 	}
 	if(cycle.task_cnt%transfer_photo_frequency==0 || key_on_flag) 
 	{
 		function_f|=(0x04);  // 转存照片	
-		printf("$ins:store photo\r\n");
+		printf("[INFO]store photo\r\n");
 	}
-				
+	
 	if(cycle.task_cnt%upload_frequency==0 || key_on_flag)  // 发送数据
 	{
 		u8 i=0;
-		printf("$ins:try to send data\r\n");
+		printf("[LOG]try to send data\r\n");
+		
+		#if QUEERY_BATTERY_ON
 		while(i++<5 && battery_data_get()==0)
 		{
-			printf("*info:try to get battery data, cnt:{(Max:5) %d}\r\n",i);
+			printf("[WARNING]try to get battery data, cnt:{(Max:5) %d}\r\n",i);
 		}
-//		if(battery.total_voltage >= voltage_fuse_threshold || battery.total_voltage == -9999)
-//		{
-//			openOutputLoad();
-//		}
-//		else
-//		{
-//			closeOutputload();
-//			//closeReLoad();
-//		}
 		if((battery.charge_current)*10 >=current_fuse_threshold  || (battery.total_voltage)*2 >=voltage_fuse_threshold)
 		{
 			ec25_on_flag=1;
-			printf("*info:battery ok|current:%d|total_voltage:%d|send data\r\n",(int)battery.charge_current*10,(int)battery.total_voltage*2);
+			printf("[INFO]battery ok|current:%d|total_voltage:%d|send data\r\n",(int)battery.charge_current*10,(int)battery.total_voltage*2);
 		}
 		else
 		{
-			printf("*info:battery error,charge_current:{(T:%d)>%d},total_voltage:{(T:%d)>%d}\r\n",\
+			printf("[WARNING]battery error,charge_current:{(T:%d)>%d},total_voltage:{(T:%d)>%d}\r\n",\
 			(int)current_fuse_threshold,(int)battery.charge_current*10,(int)voltage_fuse_threshold,(int)battery.total_voltage*2);
 		}
+		#else
+		
+		#if TEST_PARA
+		ec25_on_flag=1;
+		printf("[INFO][DEBUG]FORCE to open 4G\r\n");
+		#endif
+		
+		#endif
 		calendar_get_time(&calendar);
 		if(calendar.hour>=hardwork_min && calendar.hour<=hardwork_max)
 		{
 			ec25_on_flag=1;
-			printf("*info:time(%d->%d) ok,calendar.hour:%d send data\r\n",hardwork_min,hardwork_max,calendar.hour);
+			printf("[INFO]time(%d->%d) ok,calendar.hour:%d send data\r\n",hardwork_min,hardwork_max,calendar.hour);
 		}
 		else
 		{
-			printf("*info:time(%d->%d) error,calendar.hour:%d\r\n",hardwork_min,hardwork_max,calendar.hour);
+			printf("[WARNING]time(%d->%d) error,calendar.hour:%d\r\n",hardwork_min,hardwork_max,calendar.hour);
 		}
 		if(key_on_flag)
 		{
 			ec25_on_flag=1;
-			printf("*info:force to execute the task|ec25_on_flag=1");
+			printf("[INFO]force to execute the task|ec25_on_flag=1");
 		}
 		if(ec25_on_flag)
 		{
 			function_f|=(0x10);  // 发送数据	
-			printf("$ins:send data\r\n");
+			printf("[INFO]send data\r\n");
 			function_f|=(0x20);  // 发送图片
-			printf("$ins:send photo\r\n");	
+			printf("[INFO]end photo\r\n");	
 		}			
 	}
-	printf("[INST]function=%x\r\n",function_f);
+	printf("[INFO]function=%x\r\n",function_f);
 	//printf("-------------------------\r\n\r\n");
 	#endif
 	IWDG_Feed();//喂狗
@@ -406,7 +402,7 @@ void system_init(void)
 
 
 /**
- * @description: 分析参数
+ * @description: 分析参数是否正常/来自服务器参数
  * @param {type} 
  * buf 参数缓存地址
  * val 解析结果存放数组
@@ -427,17 +423,17 @@ u8 analyze_config_para(char *buf, u16 * val)
 	{
 		//config_flag = 1;
 		res=100;
-		printf("*info:analyze_config_para|the data is latest, no need to updata!\r\n");
+		printf("[INFO]analyze_config_para|the data is latest, no need to updata!\r\n");
 		goto an_end;
 	}
 	// 分析控制参数
-	printf("#analyze_config_para .......\r\n");
+	printf("[LOG]analyze_config_para .......\r\n");
 	offset=0;
 	val[0] = stringtoNum(buf);
 	printf("%02dsensor_frequency        :%d\r\n",offset,val[0]);
 	if(val[0]>10800|| val[0]<60)
 	{
-		printf("*!analyze_config_para error:val[0]=%d\r\n",val[0]);
+		printf("[WARNING]analyze_config_para error:val[0]=%d\r\n",val[0]);
 		res=1;
 		goto an_end;
 	}	
@@ -447,7 +443,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	
 	if(val[1]<val[0] || val[1]>43200)
 	{
-		printf("*!analyze_config_para error:val[1]=%d\r\n",val[1]);
+		printf("[WARNING]analyze_config_para error:val[1]=%d\r\n",val[1]);
 		res=2;
 		goto an_end;
 	}
@@ -456,7 +452,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	printf("%02dupload_frequency        :%d\r\n",offset,val[2]);
 	if(val[2]<val[0])
 	{
-		printf("*!analyze_config_para error:val[2]=%d\r\n",val[2]);
+		printf("[WARNING]analyze_config_para error:val[2]=%d\r\n",val[2]);
 		res=3;
 		goto an_end;
 	}
@@ -465,7 +461,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	printf("%02dtransfer_photo_frequency:%d\r\n",offset,val[3]);
 	if(val[3]<val[0])
 	{
-		printf("*!analyze_config_para error:val[3]=%d\r\n",val[3]);
+		printf("[WARNING]analyze_config_para error:val[3]=%d\r\n",val[3]);
 		res=4;
 		goto an_end;
 	}
@@ -480,7 +476,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	printf("%02dhardwork_min            :%d\r\n",offset,val[6]);
 	if(val[6]>24)
 	{
-		printf("*!analyze_config_para error:val[6]=%d\r\n",val[6]);
+		printf("[WARNING]analyze_config_para error:val[6]=%d\r\n",val[6]);
 		res=7;
 		goto an_end;
 	}
@@ -489,7 +485,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	printf("%02dhardwork_max            :%d\r\n",offset,val[7]);
 	if(val[7]<=val[6])
 	{
-		printf("*!analyze_config_para error:val[7]=%d\r\n",val[7]);
+		printf("[WARNING]analyze_config_para error:val[7]=%d\r\n",val[7]);
 		res=8;
 		goto an_end;
 	}
@@ -498,7 +494,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	printf("%02dmax_work_length         :%d\r\n",offset,val[8]);
 	if(val[8]>2400 || val[8]<180)  // 最大40min,最小3min
 	{
-		printf("*!analyze_config_para error:val[8]=%d\r\n",val[8]);
+		printf("[WARNING]analyze_config_para error:val[8]=%d\r\n",val[8]);
 		res=9;
 		goto an_end;
 	}	
@@ -926,7 +922,7 @@ static void MainTask(void *p_arg) // test fun
     {
 		#if KEY_SCAN_ON
 		key_scan_fun();
-		#endif
+		
 		if(key2_down==1)
 		{
 			act_get_data();
@@ -942,6 +938,7 @@ static void MainTask(void *p_arg) // test fun
 			act_send_picture();
 			key1_down = 0;
 		}
+		#endif
 		#if UART_CMD_MODE
 		if(USART_RX_STA &= 0x8000)  // 接受串口的指令
 		{
@@ -1020,7 +1017,7 @@ u8 check_config(u8 *load, u16 len)
 	u16 crc_rcv = 0;
 	u16 msg_len=0;
 	u16 value1[9];
-	
+	printf("[LOG]Check server parameters:\r\n");
 	msg_len = (load[6] << 8) + load[7];
 	if(msg_len < len)
 	{
@@ -1028,7 +1025,7 @@ u8 check_config(u8 *load, u16 len)
 		crc_rcv = (load[8]<<8) + load[9];				
 		if(crc_cal == crc_rcv)
 		{
-			//u8 result;
+			// 获得参数分析结果
 			res = analyze_config_para((char*)load+10, value1);
 
 			if(res==0)
@@ -1036,16 +1033,16 @@ u8 check_config(u8 *load, u16 len)
 				// 存储参数信息，字符串格式
 				// 并没有进行updata,下次启动有效
 				mf_config_data_write_flash(load+10);
-				printf("*info:mf_config_data_write data={%s}\r\n",load+10);
+				printf("[INFO]mf_config_data_write data={%s}\r\n",load+10);
 				res=0;
 			}
 			else if(res==100)
 			{
-				printf("*info:config_flag|the config is latest, don't need to upgrade\r\n");
+				printf("[INFO]config_flag|the config is latest, don't need to upgrade\r\n");
 			}
 			else
 			{
-				printf("*!warming:check_config|analyze_config_para error!\r\n");
+				printf("[WARNING]check_config|analyze_config_para error!\r\n");
 			}
 		}
 		else
@@ -1153,24 +1150,24 @@ void check_response(u8* load, int len)
 			}
 
 		}
-		else if(load[1]==0x90)
+		else if(load[1]==0x90)  // 通过判断第二个字节来识别控制指令
 		{
 			u8 res;
-			printf("\r\n*#check_config\r\n");
+			printf("[LOG]check_config\r\n");
 			res=check_config(load,len);
 			if(res==0) // 成功存储
 			{
-				printf("*mysend_config--UPDATA~~~~~\r\n");
+				printf("[INFO]mysend_config--UPDATA~~~~~\r\n");
 				mysend_config("1");
 			}
 			else if(res==100)
 			{
-				printf("*mysend_config--NO_CHANGE~~~~~\r\n");
+				printf("[INFO]mysend_config--NO_CHANGE~~~~~\r\n");
 				mysend_config("1");
 			}
 			else
 			{
-				printf("*!mysend_config--PARA_ERROR res:%d\r\n",res);
+				printf("[INFO]mysend_config--PARA_ERROR res:%d\r\n",res);
 				mysend_config("2");  // 失败
 			}
 		}
@@ -1178,15 +1175,15 @@ void check_response(u8* load, int len)
 		{	
 			char buf[10];
 
-			printf("\r\n*#check_sever_config\r\n");
+			printf("[LOG]check_sever_config\r\n");
 			res=check_sever_config(load,len);
 			if(res==0)
 			{
-				printf("*check_sever_config--UPDATA~~~~~\r\n");
+				printf("[LOG]check_sever_config--UPDATA~~~~~\r\n");
 			}
 			else
 			{
-				printf("*!check_sever_config--ERROR\r\n");
+				printf("[LOG]check_sever_config--ERROR\r\n");
 			}
 			sprintf(buf,"R%03d",res);
 			mysend_config(buf);  // 获取参数	

@@ -54,15 +54,20 @@ void Data_Packing_sens(char *msg)
 
 			gps_altitude = gpsx.altitude/10.0;
 			
-			printf("*info:Qurry EC25 GPS|latitude:%f|longitude:%f|altitude:%f\r\n",gps_latitude, gps_longitude, gps_altitude);
+			printf("[INFO]Qurry EC25 GPS|latitude:%f|longitude:%f|altitude:%f\r\n",gps_latitude, gps_longitude, gps_altitude);
 		}
 		else
 		{
 			gps_longitude = -9999;
 			gps_latitude = -9999;
 			gps_altitude = -9999;
-			printf("*GPS is unlocated\r\n");
+			printf("[INFO]GPS is unlocated\r\n");
 		}
+		#else
+		gps_longitude = -9999;
+		gps_latitude = -9999;
+		gps_altitude = -9999;
+		printf("[INFO]GPS is not work\r\n");
 		#endif
 	}
 	else
@@ -76,11 +81,10 @@ void Data_Packing_sens(char *msg)
 		printf("[WARNING]not ec25 queery GPS\r\n");
 	}
 
-	// data pack
+	// Sensors
 	sprintf(msg,"msgty//sdata|sid//11|time//%s",now_time);
-	
-    //SHT21-temp
-    sprintf(tempdata,"|t/SHT31/%f",temp);
+  //SHT21-temp
+  sprintf(tempdata,"|t/SHT31/%f",temp);
 	strcat(msg,tempdata);
 	//SHT21-humi
 	sprintf(tempdata,"|h/SHT31/%f",hum);
@@ -92,11 +96,20 @@ void Data_Packing_sens(char *msg)
 	sprintf(tempdata,"|lus/MAX44009/%f",lus);
 	strcat(msg,tempdata);
 	
+	//Battery 	
 	#if QUEERY_BATTERY_ON
-	//Battery 
 	battery_data_get(); 
+	#else
+	battery.total_voltage = -9999.0/2;
+	battery.charge_current = -9999.0/10;
+	battery.discharge_current= -9999.0/10;
+	battery.cell_temperature= -9959;
+	battery.level = -9999;
+	battery.remain_capacity= -9999;
+	battery.max_capacity= -9999;
+	printf("[WARNING]Battey is not work\r\n");
+	#endif
 	sprintf(tempdata,"|bv/%s/%d",battery.info,(int)(battery.total_voltage*2));
-	*
 	strcat(msg,tempdata);
 
 	sprintf(tempdata,"|bc//%d",(int)(battery.charge_current*10));
@@ -116,15 +129,13 @@ void Data_Packing_sens(char *msg)
 
 	sprintf(tempdata,"|br//%d",battery.remain_capacity);
 	strcat(msg,tempdata);
-	#endif
+	
 	
 	//GPS modle
 	sprintf(tempdata,"|LO/gps/%f",gps_longitude);
 	strcat(msg,tempdata);
-	
 	sprintf(tempdata,"|LA/gps/%f",gps_latitude);
 	strcat(msg,tempdata);
-
 	sprintf(tempdata,"|AL/gps/%f",gps_altitude);
 	strcat(msg,tempdata);
 	

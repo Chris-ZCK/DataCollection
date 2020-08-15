@@ -112,15 +112,15 @@ extern struct flash_package eerom;
 // 调试模式
 #define DEBUG_MODE    1
 // 睡眠模式
-#define SLEEP_MODE    0 
+#define SLEEP_MODE    1 
 // USB开关
 #define USB_MODE      1
 // 传感器开关
 #define SENSOR_MODE   1
 // 解析任务
-#define ANAY_TASK_ON  0
+#define ANAY_TASK_ON  1
 // 按键控制测试
-#define KEY_SCAN_ON 1
+#define KEY_SCAN_ON 0
 // 是否询问GPS数据
 #define QUEERY_GPS_ON 0
 // 是否询问电池数据
@@ -146,6 +146,31 @@ extern struct flash_package eerom;
 //////////////////////////////
 //////////////////////////////
 // 重要系统参数
+#define TEST_PARA 1
+
+#if TEST_PARA
+// Sys cycle, unit:s
+#define CYCLE_TIME 		60
+
+// store photo, unit:s
+#define TASK_S_P_CNT	  CYCLE_TIME*2
+// send data, unit:s
+#define TASK_S_D_CNT    CYCLE_TIME*2
+// take photo, unit:s
+#define TASK_T_P_CNT		600
+
+// 单位1mA
+#define TD_C_C_VAL		500
+// 单位mv
+#define TD_B_V_VAL		12000
+
+#define TD_C_H_S		0
+#define TD_C_H_E		8
+
+// 待机时间
+#define STANDBY_TIME	30
+#define MAX_RUN_TIME	1200
+#else
 // Sys cycle, unit:s
 #define CYCLE_TIME 		1800
 
@@ -164,8 +189,10 @@ extern struct flash_package eerom;
 #define TD_C_H_S		0
 #define TD_C_H_E		8
 
+// 待机时间
 #define STANDBY_TIME	30
 #define MAX_RUN_TIME	1200
+#endif
 //////////////////////////////
 //////////////////////////////
 

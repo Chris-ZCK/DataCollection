@@ -1015,10 +1015,10 @@ u8 mf_config_data_read(u8 *fbuf)
 void mf_config_data_write_flash(u8 *data)
 {
 	printf("*mf_config_data_write_flash\r\n");
-	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
+	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);  // 先读出原来存的内容，实际上是保存pic id
 	printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
-	strcpy((char*)eerom.buf,(const char *)data);
-	STMFLASH_Write(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
+	strcpy((char*)eerom.buf,(const char *)data);									 // 再将有效的数据写入到buf
+	STMFLASH_Write(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4); // 最后保存
 	printf("*info:STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 }
 
@@ -1034,6 +1034,7 @@ void mf_config_data_write_flash(u8 *data)
 void mf_config_data_read_flash(u8 *fbuf)
 {
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
-	printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+	//printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+	printf("*info:STMFLASH_Read|pic_id=%d\r\n",eerom.id_in_flash);
 	strcpy((char*)fbuf,(const char *)eerom.buf);
 }
