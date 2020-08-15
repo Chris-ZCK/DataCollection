@@ -394,6 +394,8 @@ u32 srt2integer_pro(u8 *str)
 
 /** 
  * @brief send pictures of assigned path(folder)
+ * 这里来看，文件不存在转存，而是直接删除了。
+ * 因为文件被删除，因此也就不存在check发送失败的内容了。
  * @param psrc	源文件夹
  * @param pdst	归档文件夹
  * @param fwmode	
@@ -403,9 +405,10 @@ u32 srt2integer_pro(u8 *str)
  * @return num of files
  * @note  max 20
  */
+#define MAX_TRANSFORM_SINGLE 3
 u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
 {
-#define MAX_PATHNAME_DEPTH 100 + 1 //最大目标文件路径+文件名深度
+	#define MAX_PATHNAME_DEPTH 100 + 1 //最大目标文件路径+文件名深度
 	u8 cnt = 0;
 	
 	u8 res = 0;
@@ -454,10 +457,10 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
                 {
                     res = 0;
                 }
-                while (res == 0) // 开始复制文件夹里面的东东
+                while (res == 0)   // 开始复制文件夹里面的东东
                 {
-                    res = f_readdir(srcdir, finfo); // 读取目录下的一个文件
-                    if (res != FR_OK || finfo->fname[0] == 0 || cnt > 3)
+                    res = f_readdir(srcdir, finfo);  // 读取目录下的一个文件
+                    if (res != FR_OK || finfo->fname[0] == 0 || cnt > MAX_TRANSFORM_SINGLE)
                     {
                         break;
                     } // 错误了/到末尾了,退出
@@ -465,7 +468,9 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
                     {
                         continue;
                     } // 忽略上级目录
-                    fn = (u8 *)(*finfo->lfname ? finfo->lfname : finfo->fname);
+                    
+					// 这里的名字是唯一的，要通过其写入时进行改变
+					fn = (u8 *)(*finfo->lfname ? finfo->lfname : finfo->fname);
 					id_pic=srt2integer_pro(fn);
                     // 得到文件名
                     dstpathlen = strlen((const char *)dstpathname); // 得到当前目标路径的长度
@@ -482,19 +487,18 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
                         strcat((char *)dstpathname, (const char *)"/"); // 目标路径加斜杠
                         strcat((char *)dstpathname, (const char *)fn);  // 目标路径加文件名
                         strcat((char *)srcpathname, (const char *)fn);  // 源路径加文件名
-                        printf("\r\n*open file %s to %s\r\n", srcpathname, dstpathname);
+                        printf("[INFO]]open file %s(src) and %s(dst)\r\n", srcpathname, dstpathname);
 						//CPU_SR_ALLOC();
 						//OS_CRITICAL_ENTER(); //进入临界区
 						IWDG_Feed();//喂狗
 						sta = mysend_picture(srcpathname, id_pic);	   // 发送文件
 						//OS_CRITICAL_EXIT();  
                         //mf_copy(srcpathname, dstpathname, fwmode); // 复制文件
-						mf_unlink(srcpathname);					   // 删除文件
-						printf("rm %s\r\n",srcpathname);
-						//mycheck_Queue();
+						mf_unlink(srcpathname);					     // 删除文件
+						printf("[INFO]rm %s\r\n",srcpathname);
 						cnt++;
 						if(sta != 0) {
-							printf("*!ERROR mysend_picture:%s,%d\r\n",srcpathname,id_pic);
+							printf("[WARNING]ERROR mysend_picture:%s,%d\r\n",srcpathname,id_pic);
 							break;
 						}
                     }
@@ -515,8 +519,6 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
     return res;
 }
 
-
-static vu8 mf_id_ctrl;
 
 // 文件复制
 // 将psrc文件,copy到pdst.
@@ -608,6 +610,8 @@ u8* get_src_dname(u8* dpfn)
 	return ++dpfn;
 }
 
+
+#define MAX_COYP_SINGLE 3
 // 文件夹复制
 // 将psrc文件夹,copy到pdst文件夹.
 // pdst:必须形如"X:"/"X:XX"/"X:XX/XX"之类的.而且要实现确认上一级文件夹存在
@@ -677,7 +681,7 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode)
                 {
 					IWDG_Feed();
                     res = f_readdir(srcdir, finfo); // 读取目录下的一个文件
-                    if (res != FR_OK || finfo->fname[0] == 0 || cnt>3)
+                    if (res != FR_OK || finfo->fname[0] == 0 || cnt>MAX_COYP_SINGLE)
                     {
                         break;
                     } // 错误了/到末尾了,退出
@@ -752,7 +756,7 @@ u8 sensordata_write(u8 *pdst, u8 *data)
 	if (fdst == NULL)
     {
         res = 100;
-		printf("*!warming:sensordata_write|fail to mymalloc memery!\r\n");
+		printf("[WARNING]warming:sensordata_write|fail to mymalloc memery!\r\n");
     }
     else
     {
@@ -767,26 +771,31 @@ u8 sensordata_write(u8 *pdst, u8 *data)
 				bw = f_puts((const char *)data,fdst);
 				if (br!=bw)  // check if write ok
 				{
-					printf("*!warming:sensordata_write|fail to write sensor data to SD card!\r\n");
+					printf("[WARNING]sensordata_write|fail to write sensor data to SD card!\r\n");
 					return 200;
 				}
 				else
 				{
-					printf("*log:sensordata_write|success write in %s\r\n",pdst);
+					printf("[LOG]sensordata_write|success write in %s\r\n",pdst);
 				}
 			}
             f_close(fdst);
         }
 		else
 		{
-			printf("*!warming:sensordata_write|fail to f_open %s\r\n",pdst);
+			printf("[WARNING]sensordata_write|fail to f_open %s\r\n",pdst);
 		}
     }
     myfree(SRAMIN, fdst);
     return res;
 }
 
-
+/**
+ * @description: 发送传感器数据
+ * 不进出队列
+ * @param {type} 
+ * @return {type} 
+ */
 u8 sensordata_send(u8 *psrc)
 {
     u8 res;
@@ -802,19 +811,18 @@ u8 sensordata_send(u8 *psrc)
 	if (fsrc == NULL || fbuf == NULL)
     {
         res = 100;
-		printf("*!warming:sensordata_send|fail to mymalloc memery!\r\n");
+		printf("[WARNING]sensordata_send|fail to mymalloc memery!\r\n");
     }
     else
     {
         res = f_open(fsrc, (const TCHAR *)psrc, FA_READ | FA_OPEN_EXISTING);
         if (res == 0)
         {
-
+			// 按行获取所有的待读数据
 			while(f_gets((TCHAR*)fbuf, 512, fsrc))
 			{
-				printf("#sensordata_read:%s#\r\n#\r\n",(char*)fbuf);
+				printf("[INFO]sensordata_read:\"%s\"\r\n",(char*)fbuf);
 				mysend_data((char*)fbuf);  // send sensor data
-			
 			}
 
             f_close(fsrc);
@@ -822,14 +830,16 @@ u8 sensordata_send(u8 *psrc)
         }
 		else
 		{
-			printf("*!warming:sensordata_send|fail to f_open %s\r\n",psrc);
+			printf("[WARNING]sensordata_send|fail to f_open %s\r\n",psrc);
 		}
     }
     myfree(SRAMIN, fsrc); 
     myfree(SRAMIN, fbuf);
-	printf("*log:sensordata_send res=%d\r\n",res);
+	printf("[LOG]sensordata_send res=%d\r\n",res);
     return res;
 }
+
+
 #define	 SENSOR_DATA_PATH 	"0:sensor.dat"
 u8 mf_sensordata_write(u8 *data)
 {

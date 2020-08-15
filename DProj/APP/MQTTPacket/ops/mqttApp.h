@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-08-14 21:16:53
+ * @LastEditTime: 2020-08-16 01:39:16
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \USERc:\Users\lihao\Documents\Git Projects\DataCollection\DProj\APP\MQTTPacket\ops\mqttApp.h
+ */
 #ifndef __MQTTAPP_H
 #define __MQTTAPP_H
 #include "sys.h"
@@ -18,7 +26,8 @@
 #define SDCARD_BUFFER 8192
 #define PACKAGE_LEN 10220
 
-
+// 每次发送完图片后需要check一次缓存
+#define RESEND_FUN_ON 1
 
 struct pick_package
 {
@@ -46,7 +55,10 @@ unsigned char mqtt_ping_state_get(void);
 MY_MQTT_ERR mysend_data(char *msg);
 MY_MQTT_ERR mysend_config(char *msg);
 MY_MQTT_ERR mysend_picture(uint8_t *file_path, uint32_t picture_id);
+
+#if RESEND_FUN_ON 
 MY_MQTT_ERR mycheck_Queue(void);
+#endif
 
 unsigned char mqtt_state_get(void);
 void mqtt_state_set(unsigned char state);

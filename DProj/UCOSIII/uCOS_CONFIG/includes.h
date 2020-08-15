@@ -126,7 +126,7 @@ extern struct flash_package eerom;
 // 是否询问电池数据
 #define QUEERY_BATTERY_ON 0
 // 串口控制
-#define UART_CMD_MODE 0
+#define UART_CMD_MODE 1
 // 获取电池数据据版本：1 老版本 2 新版本
 #define BATTERY_VERSION   2
 // 1 老版本

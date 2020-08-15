@@ -117,11 +117,11 @@ vu16 max_work_length = MAX_RUN_TIME;
   */
 void system_init(void)
 {
-	u8 res;
+	// u8 res;
 
 	// local variable
-	u32 now_time;
-	int time_delta;
+	// u32 now_time;
+	// int time_delta;
 
 	// global various
 	// watchdog_f=0;
@@ -130,8 +130,8 @@ void system_init(void)
 	ec25_on_flag = 1;  // 测试模式
 	key_on_flag = 0; // 任务执行标志清零
 	led_on_flag = 0;
-	u8 m_buf[100];
-	u16 m_value[9];
+	// u8 m_buf[100];
+	// u16 m_value[9];
 
 	// systerm initial
 	delay_init(168);  	// 时钟初始化
@@ -716,7 +716,7 @@ void act_scan_camera(void)
 	// 初始化USB
 	// 打开相机开关，对应于watch_task任务开始扫描USB
 	LED_YELLOW_ON();
-	printf("->\r\n$act:act_scan_camera...\r\n");
+	printf("[INST]act:act_scan_camera...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
 	LED_YELLOW_OFF();
@@ -730,14 +730,14 @@ void act_scan_camera(void)
 	res = waitUsbConnectFlag(10000);
 	if (res == 1) // 正常打开相机
 	{
-		printf("successful find usb，open camera!\r\n");
+		printf("[LOG]successful find usb，open camera!\r\n");
 	}
 	else
 	{
-		F407USART1_SendString("Fail WaitDistinguishflag...\r\n");
+		F407USART1_SendString("[WARNING]Fail WaitDistinguishflag...\r\n");
 	}
 	
-	printf("*try to scan usb，open camera!\r\n");
+	printf("[LOG]try to scan usb，open camera!\r\n");
 	delay_ms(2000);  // 等待相机稳定
 	mf_dcopy("1:DCIM/100IMAGE","0:INBOX",1);
 	mf_scan_files("1:DCIM/100IMAGE");
@@ -747,11 +747,11 @@ void act_scan_camera(void)
 	res = waitUsbDisonnectFlag(5000);
 	if (res == 1) // 正常关闭相机
 	{
-		F407USART1_SendString("success closeUSB...\r\n");
+		F407USART1_SendString("[LOG]success closeUSB...\r\n");
 	}
 	else
 	{
-		F407USART1_SendString("closeUSB..fail\r\n");
+		F407USART1_SendString("[LOG]closeUSB..fail\r\n");
 	}
 	IWDG_Feed();
 	usbapp_mode_stop();
@@ -765,11 +765,11 @@ void act_scan_camera(void)
  * @param {type} 
  * @return {type} 
  */
-void act_tale_photo(void)
+void act_take_photo(void)
 {
 	LED_YELLOW_ON();
 	// 判断相机状态,如果相机处于连接状态，则跳过
-	F407USART1_SendString("->\r\n$act:act_take_photo...\r\n");
+	F407USART1_SendString("[INST]act:act_take_photo...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
 	LED_YELLOW_OFF();
@@ -779,7 +779,7 @@ void act_tale_photo(void)
 	}
 	else
 	{
-		printf("*Error, Camera is connected\r\n");
+		printf("[WARNING]Error, Camera is connected\r\n");
 	}
 	delay_ms(1000);
 }
@@ -792,21 +792,21 @@ void act_tale_photo(void)
  */
 u8 act_send_picture(void)
 {
-	F407USART1_SendString("->\r\n$act:act_send_picture...\r\n");
+	F407USART1_SendString("[INST]act:act_send_picture...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
 	delay_ms(1000);	
-	printf("*mf_scan_files|befor \r\n");
+	printf("[INFO]mf_scan_files-B: \r\n");
 	mf_scan_files("0:INBOX");  // 扫描文件夹
 	mf_send_pics("0:INBOX","0:ARCH",1);  // 发送图片
-	printf("*mf_scan_files|arter\r\n");
+	printf("[INFO]mf_scan_files-A\r\n");
 	mf_scan_files("0:INBOX");  // 扫描文件架
 	return 1;
 }
 
 
 /**
- * @description: 
+ * @description:
  * @param {type} 
  * @return {type} 0 表示成功
  */
@@ -814,7 +814,7 @@ u8 check_uart_commamd(u8*buf)
 {
 	//u8 command;
 	u8 res=0;
-	printf("$check_uart_commamd:");
+	printf("[INFO]$check_uart_commamd:");
 	if(buf[0]=='{' && buf[2]==':' && buf[4]=='}')
 	{
 		switch(buf[1])
@@ -824,31 +824,31 @@ u8 check_uart_commamd(u8*buf)
 				{
 					case '0':
 						function_f=0;  // 强制休眠
-						printf("#$ins:force to sleep\r\n");	
+						printf("[INFO]#$ins:force to sleep\r\n");	
 						break;
 					case '1':
 						function_f|=(0x01);  // 获取数据
-						printf("#$ins:get data\r\n");
+						printf("[INFO]#$ins:get data\r\n");
 						break;
 					case '2':
 						function_f|=(0x02);  // 拍照
-						printf("#$ins:take photo\r\n");	
+						printf("[INFO]#$ins:take photo\r\n");	
 						break;
 					case '3':
 						function_f|=(0x04);  // 转存照片
-						printf("#$ins:store photo\r\n");
+						printf("[INFO]#$ins:store photo\r\n");
 						break;
 					case '4':
 						function_f|=(0x10);  // 发送数据	
-						printf("#$ins:send data\r\n");
+						printf("[INFO]#$ins:send data\r\n");
 						break;
 					case '5':
 						function_f|=(0x20);  // 发送图片
-						printf("#$ins:send photo\r\n");	
+						printf("[INFO]#$ins:send photo\r\n");	
 						break;
 					default:
 						res=1;
-						printf("!!!check_uart_commamd error parameter\r\n");	
+						printf("[WARNING]!!!check_uart_commamd error parameter\r\n");	
 						break;
 				}
 				break;
@@ -858,31 +858,31 @@ u8 check_uart_commamd(u8*buf)
 				{
 					case '0':
 						function_f2=0;  // 启动休眠
-						printf("#$ins:ready to sleep\r\n");	
+						printf("[INFO]#$ins:ready to sleep\r\n");	
 						break;
 						
 					case '1':
 						function_f2=1;  // 关闭休眠
-						printf("#$ins:not sleep\r\n");	
+						printf("[INFO]#$ins:not sleep\r\n");	
 						break;
 					case '2':
-						printf("#$ins:Request to get parameters\r\n");
+						printf("[INFO]#$ins:Request to get parameters\r\n");
 						if (mqtt_state_get() == 1)
 						{
-							printf("$mysend_config-QUERRY CONFIG~~~~~\r\n");
+							printf("[LOG]$mysend_config-QUERRY CONFIG~~~~~\r\n");
 							mysend_config("0");  // 获取参数
 						}
 						else
 						{
-							printf("!!!network error\r\n");
+							printf("[WARNING]!!!network error\r\n");
 						}
 						break;
 						case '3':
-						printf("#$ins:open indicator led\r\n");
+						printf("[INFO]#$ins:open indicator led\r\n");
 						led_on_flag=1;
 						break;
 					case '4':
-						printf("#$ins:close indicator led\r\n");
+						printf("[INFO]#$ins:close indicator led\r\n");
 						led_on_flag=0;
 						LED_BLUE_OFF();
 						LED_YELLOW_OFF();
@@ -890,20 +890,20 @@ u8 check_uart_commamd(u8*buf)
 						break;
 					default:
 						res=2;
-						printf("!!!check_uart_commamd error parameter\r\n");	
+						printf("[WARNING]!!!check_uart_commamd error parameter\r\n");	
 						break;
 				}
 				break;
 			default:
 				res=3;
-				printf("!!!check_uart_commamd error command\r\n");	
+				printf("[WARNING]!!!check_uart_commamd error command\r\n");	
 				break;
 		}
 	}
 	else
 	{
 		res=4;
-		printf("!!!check_uart_commamd error format\r\n");	
+		printf("[WARNING]!!!check_uart_commamd error format\r\n");	
 	}
 	return res;
 }
@@ -934,6 +934,11 @@ static void MainTask(void *p_arg) // test fun
 			key2_down = 0;
 
 		}
+		if(key3_down==1)
+		{
+			act_scan_camera();
+			key3_down = 0;
+		}
 		#if UART_CMD_MODE
 		if(USART_RX_STA &= 0x8000)  // 接受串口的指令
 		{
@@ -954,7 +959,7 @@ static void MainTask(void *p_arg) // test fun
 			else if(function_f&0x02 )  // 拍照
 			{
 				IWDG_Feed();
-				act_tale_photo();
+				act_take_photo();
 				delay_ms(1000);
 				function_f&=(~0x02);
 				printf("*fun:%x\r\n",function_f);

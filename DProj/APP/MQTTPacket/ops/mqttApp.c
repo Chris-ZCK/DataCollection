@@ -217,17 +217,17 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 	res = f_open(&fl_in, (const char *)file_path, FA_OPEN_EXISTING | FA_READ);
 	if (res != FR_OK)
 	{
-		printf("MY_MQTT_ERR_GETDATA_FAIL <PATH:%s>\r\n", file_path);
+		printf("[WARNING]MY_MQTT_ERR_GETDATA_FAIL <PATH:%s>\r\n", file_path);
 		return MY_MQTT_ERR_GETDATA_FAIL;
 	}
 	// 每张图片唯一,后期根据读取的数据改变
 	pic_pack.picture_id = picture_id;
-	printf("#now sending picture_id=%d#\r\n", picture_id);
+	printf("[INFO]now sending picture_id=%d#\r\n", picture_id);
 	// 读取文件大小
 	pic_pack.data_total_length = f_size(&fl_in);
 	// 计算传输次数
 	pic_pack.packet_total_num = (pic_pack.data_total_length / packagelen) + 1;
-	printf("f_open successfully <file_path:%s|file_size:%d|sub_num:%d|packagelen:%d>\r\n",
+	printf("[INFO]f_open successfully <file_path:%s|file_size:%d|sub_num:%d|packagelen:%d>\r\n",
 		   file_path, pic_pack.data_total_length, pic_pack.packet_total_num, packagelen);
 	pic_pack.data_length = packagelen;
 	// 处理
@@ -248,7 +248,7 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 			if (getLen != packagelen)
 			{
 				f_close(&fl_in);
-				printf("MY_MQTT_ERR_GETDATA_FAIL <rc|pack:%d|%d>\r\n", getLen, packagelen);
+				printf("[WARNING]MY_MQTT_ERR_GETDATA_FAIL <rc|pack:%d|%d>\r\n", getLen, packagelen);
 				return MY_MQTT_ERR_GETDATA_FAIL; // 后续这个需要定义
 			}
 			// add crc
@@ -266,19 +266,19 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 			if (getLen != otherLen)
 			{
 				f_close(&fl_in);
-				printf("MY_MQTT_ERR_GETDATA_FAIL <rc|pack:%d|%d>\r\n", getLen, packagelen);
+				printf("[WARNING]MY_MQTT_ERR_GETDATA_FAIL <rc|pack:%d|%d>\r\n", getLen, packagelen);
 				return MY_MQTT_ERR_GETDATA_FAIL; // 后续这个需要定义
 			}
 			// add crc
 			pack_crc = ModBusCRC(pic_buff + picPack_offset, getLen);
-			printf("%0X,picPack_offset=%d,packagelen=%d\r\n", pack_crc, picPack_offset, getLen);
+			printf("[INFO]%0X,picPack_offset=%d,packagelen=%d\r\n", pack_crc, picPack_offset, getLen);
 			pic_buff[18] = pack_crc >> 8;
 			pic_buff[19] = pack_crc;
 		}
 		else // 发送数据完毕，等待确认数据
 		{
 			f_close(&fl_in);
-			F407USART1_SendString("PICTURE MY_MQTT_ERR_NONE，发送成功\r\n");
+			F407USART1_SendString("[LOG]PICTURE MY_MQTT_ERR_NONE，发送成功\r\n");
 			LED_GREEN_OFF();
 			return MY_MQTT_ERR_NONE;
 		}
@@ -290,6 +290,7 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 		if (mqtt_res == MY_MQTT_ERR_SEND_FAIL)
 		{
 			f_close(&fl_in);
+			printf("[WARNING]mqtt_publish_data FAIL\r\n");
 			return MY_MQTT_ERR_SEND_FAIL;
 		}
 		// 写入队列
@@ -308,11 +309,13 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 			}
 		}
 		otherLen -= getLen;
-		printf("otherLen:%d,crc=%0X\r\n", otherLen, pack_crc);
+		printf("[INFO]otherLen:%d,crc=%0X\r\n", otherLen, pack_crc);
 		pic_pack.packet_id++;
 	}
 	return MY_MQTT_ERR_NONE;
 }
+
+#if RESEND_FUN_ON 
 /**
  * @description: 获取重发图片的名字
  * @param d_path 文件夹路径
@@ -491,6 +494,14 @@ MY_MQTT_ERR mycheck_Queue(void)
 	return check_Queue(MQTT_DATA_buf, MQTT_DATA_BUFF_MAXLENGTH,
 				packagelen);
 }
+#endif
+
+
+/**
+ * @description: 发送一张图片
+ * @param {type} 
+ * @return {type} 
+ */
 MY_MQTT_ERR mysend_picture(uint8_t *file_path, uint32_t picture_id)
 {
 	MY_MQTT_ERR res;
@@ -537,6 +548,7 @@ int mymes_serialize(char *buf, uint16_t msg_len, uint16_t crc)
 }
 /**
  * @description: 发送数据
+ * 2020/08/15 屏蔽了入队列的操作
  * @param msg 数据地址
  * @return: 0 发送成功，>0 发送失败
  */
@@ -558,12 +570,18 @@ MY_MQTT_ERR mysend_data(char *msg)
 	mqtt_publish_data(MY_TOPIC_MSGUP, MQTT_DATA_buf, len+offset);
 	LED_GREEN_OFF();
 	// 写入队列
-	EnQueue(&Q_stage, frame_p);
-	printf("+ Q_stage:[%3d,%3d,%3d],QOUID:%08X,pid:%04X\r\n", Q_stage.front, Q_stage.rear, QueueLength(Q_stage), frame_p.uid, frame_p.pack_id);
-	printf("* Q_resnt:[%3d,%3d,%3d],QOUID:%08X,pid:%04X\r\n", Q_resent.front, Q_resent.rear, QueueLength(Q_resent), Q_resent.data[Q_resent.front].uid, Q_resent.data[Q_resent.front].pack_id);
+	// EnQueue(&Q_stage, frame_p);
+	// printf("+ Q_stage:[%3d,%3d,%3d],QOUID:%08X,pid:%04X\r\n", Q_stage.front, Q_stage.rear, QueueLength(Q_stage), frame_p.uid, frame_p.pack_id);
+	// printf("* Q_resnt:[%3d,%3d,%3d],QOUID:%08X,pid:%04X\r\n", Q_resent.front, Q_resent.rear, QueueLength(Q_resent), Q_resent.data[Q_resent.front].uid, Q_resent.data[Q_resent.front].pack_id);
 	return MY_MQTT_ERR_NONE;
 }
 
+
+/**
+ * @description: 发送控制指令
+ * @param {type} 
+ * @return {type} 
+ */
 MY_MQTT_ERR mysend_config(char *msg)
 {
 	uint16_t len = 0;
