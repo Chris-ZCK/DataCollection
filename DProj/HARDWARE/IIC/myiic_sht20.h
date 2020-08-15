@@ -1,3 +1,11 @@
+/*
+ * @Author: Howell
+ * @Date: 2020-08-14 21:16:54
+ * @LastEditTime: 2020-08-15 05:41:43
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \USERc:\Users\lihao\Documents\Git Projects\DataCollection\DProj\HARDWARE\IIC\myiic_sht20.h
+ */
 #ifndef __MYIIC_SHT20_H
 #define __MYIIC_SHT20_H
 #include "sys.h"
@@ -5,7 +13,7 @@
    	   		   
 //IO方向设置
 #define SHT20_SDA_IN()  {GPIOB->MODER&=~(3<<(7*2));GPIOB->MODER|=0<<7*2;}	//PB7输入模式
-#define SHT20_SDA_OUT() {GPIOB->MODER&=~(3<<(7*2));GPIOB->MODER|=1<<7*2;} //PB7输出模式
+#define SHT20_SDA_OUT() {GPIOB->MODER&=~(3<<(7*2));GPIOB->MODER|=1<<7*2;}   //PB7输出模式
 //IO操作函数	 
 #define SHT20_IIC_SCL    PBout(6) //SCL
 #define SHT20_IIC_SDA    PBout(7) //SDA	 

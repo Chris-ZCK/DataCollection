@@ -37,13 +37,13 @@ void testtest(void)
 void SendBatteryInstruct(u8 *instruct, u8 len)
 {
 	u8 i;
-	#if EN_log_print>2 
+	#if EN_LOG_PRINT>2 
 	printf("SendBatteryInstruct[%d]:", len);  // 测试时候使用
 	#endif
 	for(i=0;i<len;i++)
 	{
 		//F407USART2_SendByte(instruct[i]);
-		//#if EN_log_print>2 
+		//#if EN_LOG_PRINT>2 
 		printf("%02X ",instruct[i]);  // 测试时候使用
 		//#endif
 	}

@@ -1,8 +1,16 @@
+/*
+ * @Author: Howell
+ * @Date: 2020-08-14 21:16:54
+ * @LastEditTime: 2020-08-15 05:31:05
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \USERc:\Users\lihao\Documents\Git Projects\DataCollection\DProj\HARDWARE\RNG\rng.c
+ */
 #include "rng.h"
 #include "delay.h"
 //初始化RNG
 /**
- * @description: initial the rng
+ * @description: 初始化时钟，产生谁技术
  * @param void
  * @return: 返回随机数状态，0->成功，1->异常
  */

@@ -34,8 +34,8 @@ EC25_ERR ec25_Init(void)
 	F407USART3_Init(921600); // config & fixed
 	#endif
 	POWER_D = 1;			 // 打开4G电源
-#if (EN_log_print >= 3)
-	F407USART1_SendString("POWER_4G,ec25_Init\r\n");
+#if (EN_LOG_PRINT >= 3)
+	F407USART1_SendString("[LOG]POWER_4G,EC25_Init\r\n");
 #endif
 	delay_ms(1000);
 	return ec25_tcp_Conditon_Normal();
@@ -47,7 +47,7 @@ EC25_ERR ec25_Init(void)
  */
 void ec25_reset(int ms)
 {
-#if (EN_log_print >= 3)
+#if (EN_LOG_PRINT >= 3)
 	F407USART1_SendString("reset_modle\r\n");
 #endif
 	EC25_PERST = 1;
@@ -96,7 +96,7 @@ void ec25_Turn_off(void)
 	waitString_set("POWERED DOWN", 12);
 	// 关闭网络，否则可能会打开失败
 	F407USART3_SendString("AT+QPOWD\r\n");
-#if (EN_log_print >= 1)
+#if (EN_LOG_PRINT >= 1)
 	F407USART1_SendString("AT+QPOWD\r\n");
 #endif
 	WaitString_OKflag(5000);
@@ -447,9 +447,9 @@ EC25_ERR ec25_TCPDisConnect(void)
 	sprintf(ptr, "AT+QIOPEN=1,0,\"TCP\",\"%s\",%d,0,1\r\n", ip, port);
 	//F407USART1_SendString("AT+QIOPEN=1,0,\"TCP\",\"112.74.59.250\",10002,0,1\r\n");
 	F407USART3_SendString(ptr);
-#if (EN_log_print >= 1)
+#if (EN_LOG_PRINT >= 1)
 	F407USART1_SendString(ptr);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 	res = WaitString_OKflag(10000);
 	if (res)
 	{
@@ -534,9 +534,9 @@ uint8_t SIM7100_TCPConnect(uint8_t *ip, uint16_t port)
 	sprintf(ptr, "AT+QIOPEN=1,0,\"TCP\",\"%s\",%d,0,1\r\n", ip, port);
 	//F407USART1_SendString("AT+QIOPEN=1,0,\"TCP\",\"112.74.59.250\",10002,0,1\r\n");
 	F407USART3_SendString(ptr);
-#if (EN_log_print >= 1)
+#if (EN_LOG_PRINT >= 1)
 	F407USART1_SendString(ptr);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 	res = WaitString_OKflag(10000);
 	if (res)
 	{
@@ -582,9 +582,9 @@ uint8_t ec25_TCPReconnect(uint8_t *ip, uint16_t port)
 		waitString_set("+QIOPEN: 0,0", 12); // 命令模式等待该响应
 		// 打开tcp连接
 		F407USART3_SendString(ptr);
-#if (EN_log_print >= 1)
+#if (EN_LOG_PRINT >= 1)
 		F407USART1_SendString(ptr);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 		res = WaitString_OKflag(10000);
 		if (res)
 		{
@@ -686,9 +686,9 @@ uint16_t ec25_TCPSendDataPack(char *data, uint16_t length)
 	waitString_set(">", 1);
 	sprintf(myBUF50, "AT+QISEND=0,%d\r\n", length);
 	F407USART3_SendString(myBUF50);
-#if (EN_log_print >= 3)
+#if (EN_LOG_PRINT >= 3)
 	F407USART1_SendString(myBUF50);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 	res = WaitString_OKflag(5000);
 	if (res == 0)
 	{

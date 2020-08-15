@@ -367,9 +367,9 @@ MY_MQTT_ERR check_Queue(uint8_t *pic_buff, uint32_t pic_bufflen,	// 单个图片分包
 	i = Q_resent.front;
 	while (i != Q_resent.rear)
 	{
-#if (EN_log_print >= 2)
+#if (EN_LOG_PRINT >= 2)
 		printf("\r\n#####check_Queue####\r\n");
-#endif // EN_log_print \
+#endif // EN_LOG_PRINT \
 	// 如果是图片包
 		if (elem.pic_id != 0)
 		{
@@ -390,9 +390,9 @@ MY_MQTT_ERR check_Queue(uint8_t *pic_buff, uint32_t pic_bufflen,	// 单个图片分包
 					return MY_MQTT_ERR_GETDATA_FAIL;
 				}
 			}
-#if (EN_log_print >= 2)
+#if (EN_LOG_PRINT >= 2)
 			printf("resent picture path:%s \r\n", file_path);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 		RESENT:
 			// 每张图片唯一,后期根据读取的数据改变
 			pic_pack.picture_id = elem.pic_id;
@@ -417,9 +417,9 @@ MY_MQTT_ERR check_Queue(uint8_t *pic_buff, uint32_t pic_bufflen,	// 单个图片分包
 			{
 				printf("f_lseek ERROR f_lseek ERROR f_lseek ERROR\r\n");
 			}
-#if (EN_log_print >= 2)
+#if (EN_LOG_PRINT >= 2)
 			printf("f_lseek:%d|%d\r\n", packagelen * (elem.pack_id), pic_pack.data_total_length);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 			f_read(&fl_in, pic_buff + picPack_offset, otherLen, &getLen);
 			if (getLen != otherLen)
 			{
@@ -430,9 +430,9 @@ MY_MQTT_ERR check_Queue(uint8_t *pic_buff, uint32_t pic_bufflen,	// 单个图片分包
 			}
 			// add crc
 			pack_crc = ModBusCRC(pic_buff + picPack_offset, getLen);
-#if (EN_log_print >= 2)
+#if (EN_LOG_PRINT >= 2)
 			printf("%0X,picPack_offset=%d,packagelen=%d\r\n", pack_crc, picPack_offset, getLen);
-#endif // EN_log_print
+#endif // EN_LOG_PRINT
 			pic_buff[18] = pack_crc >> 8;
 			pic_buff[19] = pack_crc;
 			// 发送前先清空缓存区

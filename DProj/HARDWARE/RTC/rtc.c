@@ -53,7 +53,7 @@ u8 My_RTC_Init(void)
 	u16 retry=0X1FFF; 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);//使能PWR时钟
 	PWR_BackupAccessCmd(ENABLE);	//使能后备寄存器访问 
-	printf("*My RTC Init\r\n");
+	printf("[LOG]My RTC Init\r\n");
 
 	if(RTC_ReadBackupRegister(RTC_BKP_DR0)!=0x5050)		//是否第一次配置?
 	{
@@ -72,7 +72,7 @@ u8 My_RTC_Init(void)
 			// config LSI
 			//RCC_SYSCLKSource_LSI
 			RCC_LSICmd(ENABLE);//LSI 开启     
-			printf("rtc RCC_LSICmd config start\r\n");
+			printf("[LOG]rtc RCC_LSICmd config start\r\n");
 			while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET)
 			{
 				retry++;
@@ -80,12 +80,12 @@ u8 My_RTC_Init(void)
 			}
 			if(retry==0)
 			{
-				printf("*!!!!fail2 rtc RCC LSICmd\r\n");
+				printf("[ERROR]fail2 rtc RCC LSICmd\r\n");
 				return 1;		//LSI 开启失败. 
 			}
 			else
 			{
-				printf("*rtc RCC_LSICmd config OK\r\n");
+				printf("[LOG]rtc RCC_LSICmd config OK\r\n");
 			}
 			RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);     //设置RTC时钟(RTCCLK),选择LSI作为RTC时钟    
 //		}
@@ -104,7 +104,7 @@ u8 My_RTC_Init(void)
  
 		RTC_Set_Time(18,17,0,RTC_H12_AM);  //设置时间
 		RTC_Set_Date(19,9,23,1);		//设置日期
-		printf("*rtc RCC_LSEConfig2\r\n");
+		printf("[LOG]rtc RCC_LSEConfig2\r\n");
 		RTC_WriteBackupRegister(RTC_BKP_DR0,0x5050);	//标记已经初始化过了
 	} 
 	last_timecount = RTC_GetCounter();  // 获取当前的时间(s)
@@ -117,7 +117,7 @@ int my_RTC_Set_Time(_calendar_obj calendar)
 	u16 retry=0X1FFF; 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);//使能PWR时钟
 	PWR_BackupAccessCmd(ENABLE);	//使能后备寄存器访问 
-	printf("*RTC Set Time\r\n");
+	printf("[LOG]RTC Set Time\r\n");
 
 	// config LSE
 	//RCC_SYSCLKSource_LSE
@@ -134,7 +134,7 @@ int my_RTC_Set_Time(_calendar_obj calendar)
 		// config LSI
 		//RCC_SYSCLKSource_LSI
 		RCC_LSICmd(ENABLE);//LSI 开启     
-		printf("rtc RCC_LSICmd config start\r\n");
+		printf("[LOG]rtc RCC_LSICmd config start\r\n");
 		while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET)
 		{
 			retry++;
@@ -142,12 +142,12 @@ int my_RTC_Set_Time(_calendar_obj calendar)
 		}
 		if(retry==0)
 		{
-			printf("*!!!!fail2 rtc RCC LSICmd\r\n");
+			printf("[ERROR]fail2 rtc RCC LSICmd\r\n");
 			return 1;		//LSI 开启失败. 
 		}
 		else
 		{
-			printf("*rtc RCC_LSICmd config OK\r\n");
+			printf("[LOG]rtc RCC_LSICmd config OK\r\n");
 		}
 		RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);     //设置RTC时钟(RTCCLK),选择LSI作为RTC时钟    
 //	}
@@ -164,14 +164,14 @@ int my_RTC_Set_Time(_calendar_obj calendar)
 	RTC_InitStructure.RTC_HourFormat   = RTC_HourFormat_24;//RTC设置为,24小时格式
 	RTC_Init(&RTC_InitStructure);
 
-	printf("*DATA:%d-%d-%d	Time:%d:%d:%d@\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	printf("[INFO]DATA-B:%d-%d-%d	Time:%d:%d:%d@\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 	RTC_Set_Time(calendar.hour,calendar.min,calendar.sec,RTC_H12_AM);  //设置时间
 	RTC_Set_Date(calendar.w_year-2000,calendar.w_month,calendar.w_date,6);  //设置日期
 	
 
 	calendar_get_time(&calendar);
 	calendar_get_date(&calendar);
-	printf("*DATA:%d-%d-%d	Time:%d:%d:%d&\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	printf("[INFO]DATA-A:%d-%d-%d	Time:%d:%d:%d&\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 	
 	return 0;
 
@@ -303,7 +303,7 @@ void Sys_Enter_Standby(u32 time_seconed)
 	time_delta = now_time - cycle.time_stamp;  // 正常时>0,或者now_time+3600- cycle.time_stamp>0 ，否则异常，更新时间戳时间
 	if(time_delta <0)
 		time_delta+=3600;
-	printf("$Sys_Enter_Standby %d |fun:%d|run:%d\r\n\r\n",time_seconed, function_f, time_delta);
+	printf("[SYS]Sys_Enter_Standby %d |fun:%d|run:%d\r\n\r\n",time_seconed, function_f, time_delta);
 	
 	printf("^^^^^^^^^^^^^^normal sleep^^^^^^^^^^^^^^^\r\n");
 	printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\n\r\n\r\n");

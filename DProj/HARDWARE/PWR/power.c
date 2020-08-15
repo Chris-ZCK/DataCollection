@@ -1,7 +1,7 @@
 /*
  * @Author: Howell
  * @Date: 2020-08-09 10:58:08
- * @LastEditTime: 2020-08-09 14:14:21
+ * @LastEditTime: 2020-08-15 22:03:27
  * @LastEditors: Please set LastEditors
  * @Description: 
  * @FilePath: \Aproj\HARDWARE\PWR\power.c
@@ -31,8 +31,8 @@ void Power_Ctrl_Init(void)
 	GPIO_SetBits(GPIOE, GPIO_Pin_11 | GPIO_Pin_12 );
 	// POWER_D & POWER_LE & POWER_USB & POWER_USB & POWER_OUT3V3 & POWER_OUT5
 	GPIO_ResetBits(GPIOE, GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-	#if EN_log_print>=2
-	printf("*Power_Ctrl_Init\r\n");
+	#if EN_LOG_PRINT>=2
+	printf("[LOG]Power_Ctrl_Init\r\n");
 	#endif
 	// 打开传感器电源
 	POWER_OUT3V3=1;
@@ -58,7 +58,7 @@ void Cam_Crtl_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  // 上拉
 	GPIO_Init(GPIOE, &GPIO_InitStructure);  // 初始化
 
-	GPIO_ResetBits(GPIOD, GPIO_Pin_5 | GPIO_Pin_6);
+	GPIO_ResetBits(GPIOE, GPIO_Pin_5 | GPIO_Pin_6);
 }
 
 

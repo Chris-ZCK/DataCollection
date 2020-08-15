@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-08-14 21:16:54
+ * @LastEditTime: 2020-08-15 05:43:42
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \USERc:\Users\lihao\Documents\Git Projects\DataCollection\DProj\HARDWARE\IIC\myiic_max44009.h
+ */
 #ifndef __MYIIC_MAX44009_H
 #define __MYIIC_MAX44009_H
 #include "sys.h"
@@ -5,7 +13,7 @@
    	   		   
 //IO方向设置
 #define MAX44009_SDA_IN()  {GPIOB->MODER&=~(3<<(11*2));GPIOB->MODER|=0<<11*2;}	//PB11输入模式
-#define MAX44009_SDA_OUT() {GPIOB->MODER&=~(3<<(11*2));GPIOB->MODER|=1<<11*2;} //PB11输出模式
+#define MAX44009_SDA_OUT() {GPIOB->MODER&=~(3<<(11*2));GPIOB->MODER|=1<<11*2;}  //PB11输出模式
 //IO操作函数	 
 #define MAX44009_IIC_SCL    PBout(10) //SCL
 #define MAX44009_IIC_SDA    PBout(11) //SDA	 

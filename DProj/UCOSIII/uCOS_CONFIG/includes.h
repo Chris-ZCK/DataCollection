@@ -101,28 +101,35 @@ struct flash_package
 };
 
 
-
 extern vu16 ec25_on_flag;
 extern struct cycle_package cycle;
 extern struct flash_package eerom;
 // ec25 flag，1：use HCTV; 0:use normal network
 #define In_Condition_HCTV 0
 
-// power flag
-// define POWER_MP  MP1584, active=1,default=0
-// define POWER_MIC     PEout(10)  // MIC30032,active=1,default=0
-#define POWER_4G		POWER_MP   
 
 // global switch
+// 调试模式
 #define DEBUG_MODE    1
+// 睡眠模式
 #define SLEEP_MODE    0 
+// USB开关
 #define USB_MODE      1
-#define SENSOR_MODE   0
-
+// 传感器开关
+#define SENSOR_MODE   1
+// 解析任务
+#define ANAY_TASK_ON  0
+// 按键控制测试
+#define KEY_SCAN_ON 1
+// 串口控制
 #define UART_CMD_MODE 0
-
+// 获取电池数据据版本：1 老版本 2 新版本
+#define BATTERY_VERSION   2
+// 1 老版本
+// 2 新版本
 // Global macro definition
-#define EN_log_print  3
+
+#define EN_LOG_PRINT  3
 // Global use
 // 0 都不打印 
 // 1 重要信息
@@ -130,10 +137,9 @@ extern struct flash_package eerom;
 // 3 调试信息
 // 4 其他信息
 
-#define BATTERY_VERSION   2
-// 1 老版本
-// 2 新版本
-
+//////////////////////////////
+//////////////////////////////
+// 重要系统参数
 // Sys cycle, unit:s
 #define CYCLE_TIME 		1800
 
@@ -154,7 +160,8 @@ extern struct flash_package eerom;
 
 #define STANDBY_TIME	30
 #define MAX_RUN_TIME	1200
-
+//////////////////////////////
+//////////////////////////////
 
 
 #include "MyFunction_C.h"
@@ -178,6 +185,7 @@ extern struct flash_package eerom;
 #include "mqttTransport.h"
 
 #include "ec25.h"
+
 #if SENSOR_MODE
 #include "sensor.h"  // self
 #include "myiic_sht20.h"

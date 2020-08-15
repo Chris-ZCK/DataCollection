@@ -1,7 +1,7 @@
 /*
  * @Author: Howell
  * @Date: 2020-08-10 17:34:17
- * @LastEditTime: 2020-08-11 10:06:45
+ * @LastEditTime: 2020-08-15 22:49:18
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \DProj\HARDWARE\KEY\key.c
@@ -59,7 +59,8 @@ uint8_t key2_down = 0;	 // key2 state
 uint8_t key3_down = 0; 	 // key3 state
 
 /**
- * @description: ????
+ * @description: ??????????
+ * ??????
  * @param {type} 
  * @return {type} 
  * 1 key1

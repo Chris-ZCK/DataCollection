@@ -130,16 +130,16 @@ u8 mf_check_dir(u8* path)
 	{
 		if(mf_mkdir(path)==FR_OK)
 		{
-			printf("Create directory %s.\r\n", path);
+			printf("[LOG]Create directory %s.\r\n", path);
 		}
 		else
 		{
-			printf("ERROR:Fail to create directory. %s @!!!!!!!!!!!!!!!\r\n", path);
+			printf("[ERROR]Fail to create directory. %s @!!!!!!!!!!!!!!!\r\n", path);
 		}
 	}
 	else
 	{
-		printf("Directory %s already exists.\r\n", path);
+		//printf("Directory %s already exists.\r\n", path);
 	}
 
 }
@@ -200,7 +200,7 @@ u8 mf_scan_files(u8 * path)
  	fileinfo.lfsize = _MAX_LFN * 2 + 1;
 	fileinfo.lfname = mymalloc(SRAMIN,fileinfo.lfsize);
 #endif		  
-	printf("*scan files path:<%s>, the details are as follows:\r\n",path);
+	printf("[INFO]scan files path:<%s>, the details are as follows:\r\n",path);
     res = f_opendir(&dir,(const TCHAR*)path); //打开一个目录
     if (res == FR_OK) 
 	{	
@@ -215,10 +215,10 @@ u8 mf_scan_files(u8 * path)
 #else							   
         	fn = fileinfo.fname;
 #endif	                                              /* It is a file. */
-			printf("%s/", path);//打印路径	
-			printf("%s\r\n",  fn);//打印文件名	  
+			printf("%s/", path);  // 打印路径	
+			printf("%s\r\n",  fn);  // 打印文件名	  
 		} 
-		printf("Above are all the directories.\r\n");
+		printf("[LOG]Above are all the directories.\r\n");
     }	  
 	myfree(SRAMIN,fileinfo.lfname);
     return res;	  

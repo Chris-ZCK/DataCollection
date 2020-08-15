@@ -8,7 +8,8 @@
 //优先级OS_CFG_PRIO_MAX-2：统计任务 OS_StatTask()
 //优先级OS_CFG_PRIO_MAX-1：空闲任务 OS_IdleTask()
 
-/* 开始任务 */
+/* 开始任务 
+*/
 #define START_TASK_PRIO									3
 //任务堆栈大小	
 #define START_STK_SIZE 									128
@@ -145,8 +146,8 @@ void system_init(void)
 	
 	KEY_Init();	  		// key init
 	LED_Init();   		// LED init
-	rng_Init();	
-	mqtt_UID_set();
+	rng_Init();			// 随机数生成器初始化
+	mqtt_UID_set();     // 生成唯一id
 
 	
 	InitQueue(&Q_stage);  	// 初始化队列 
@@ -162,6 +163,7 @@ void system_init(void)
     
 	// local_time_cnt = calendar.sec;  // 用于看门狗统计
 	
+	#if ANAY_TASK_ON
 	mf_config_data_read_flash(m_buf);
 	res = analyze_config_para((char *)m_buf,m_value);
 	if(res==0) // 有意义
@@ -190,7 +192,7 @@ void system_init(void)
 		max_work_length = MAX_RUN_TIME;
 		printf("!analyze_config_para error\r\n");
 	}
-
+	#endif
 	// sleep mode
 	#if FLASH_WRITE_MODE
 	cycle.time_stamp=get_time_cnt();
@@ -267,35 +269,32 @@ void system_init(void)
 		cycle.time_stamp=now_time;  // 更新时间戳
 		cycle.task_cnt ++;		
 		STMFLASH_Write(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);
-		printf("*info:STMFLASH_Write|time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
-		printf("$!!!force to execute the task,can't sleep!!!\r\n");
+		printf("[INFO]STMFLASH_Write|time_stamp:%d,task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
+		printf("[INFO]force to execute the task,can't sleep!!!\r\n");
 	}
 	#endif
 
+	// SD卡初始化
     if (!SD_Init())
 	{
-		printf("SD_Init ok\r\n"); //判断SD卡是否存在
+		printf("[LOG]SD_Init ok\r\n"); //判断SD卡是否存在
 		// 访问文件夹
 	}
 	else
 	{
-        printf("ERROR:SD_Init failed!!!!!!!!!!\r\n");
-		// LED 闪烁
-		while(1)
-		{
-			LED_BLUE_NOT();
-			LED_GREEN_NOT();
-			LED_YELLOW_NOT();
-			delay_ms(300);
-		}
+        printf("[ERROR]SD_Init failed!!!!!!!!!!\r\n");
 	}
 	mymem_init(SRAMIN);      // 初始化内部内存池
 	exfuns_init();           // 为fatfs相关变量申请内存
 	f_mount(fs[0], "0:", 1); // 挂载SD卡
+	
+	#if EN_LOG_PRINT > 2
 	mf_scan_files((u8*)"0:");
 	mf_check_dir((u8*)"0:INBOX");
 	mf_check_dir((u8*)"0:ARCH");
+	#endif
 
+	// 打卡SD卡日志记录开关
 	#if EN_log_sd
 	mf_log_init();			 //初始化日志
 	#endif
@@ -304,7 +303,7 @@ void system_init(void)
 	usbapp_init();
 	USBH_Init(&USB_OTG_Core,USB_OTG_FS_CORE_ID,&USB_Host,&USBH_MSC_cb,&USR_Callbacks);
 	delay_ms(1000);
-	f_mount(fs[1], "1:", 1); //挂载U盘
+	f_mount(fs[1], "1:", 1);  // 挂载U盘
 	#endif	
 	
  	printf("--------sys value--------\r\n");
@@ -327,9 +326,10 @@ void system_init(void)
 	MS5611_Init();  		// MS5611初始化
 	USART2_init(9600); 		// 电池数据端口初始化
 	Cam_Crtl_Init();   		// 相机控制引脚初始化
+	printf("[LOG]SENSOR init\r\n");
 	#endif
 
-	/*
+	#if ANAY_TASK_ON
 	// 任务解析部分想要重新加进来，当下的过于死板
 	// 任务解析
 	printf("*info:Task analysis...........\r\n");
@@ -399,9 +399,9 @@ void system_init(void)
 			printf("$ins:send photo\r\n");	
 		}			
 	}
-	printf("$function=%x\r\n",function_f);
-	printf("-------------------------\r\n\r\n");
-	*/
+	printf("[INST]function=%x\r\n",function_f);
+	//printf("-------------------------\r\n\r\n");
+	#endif
 	IWDG_Feed();//喂狗
 }
 
@@ -511,6 +511,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 
 /**
  * @description: 主函数
+ * 启动任务
  * @param {type} 
  * @return {type} 
  */
@@ -656,7 +657,7 @@ void  SysWatchTask(void *pdata)
 {
 	OS_ERR err;
 	u16 t;
-	printf("SysWatchTask running!!!!!\r\n");
+	printf("[Task]SysWatchTask running!!!!!\r\n");
 	delay_ms(500);
 	while(1)
 	{
@@ -687,14 +688,14 @@ void  SysWatchTask(void *pdata)
 			{
 				usbapp_pulling();  // 轮询处理USB事务
 				delay_ms(1);  // 不能像HID那么猛...,U盘比较慢
-				#if (EN_log_print >= 2)
+				#if (EN_LOG_PRINT >= 2)
 				printf(".");
-				#endif // EN_log_print
+				#endif // EN_LOG_PRINT
 			}
 			usbapp_pulling();  // 检测USB
-			#if (EN_log_print >= 2)
+			#if (EN_LOG_PRINT >= 2)
 			printf("\\");
-			#endif // EN_log_print
+			#endif // EN_LOG_PRINT
 		}
 		#endif
 		UART_TCPbuff_Run(F407USART3_buffRead);  // 循环读取U3中缓存数据
@@ -911,7 +912,8 @@ u8 check_uart_commamd(u8*buf)
 void openUSB(void);
 void closeUSB(void);
 /**
- * @description: 
+ * @description: 主执行任务
+ * 上层封装的任务，用于调用任务函数，执行任务指令
  * @param {type} 
  * @return {type} 
  */
@@ -923,6 +925,15 @@ static void MainTask(void *p_arg) // test fun
 	delay_ms(500);  
 	while (1)
     {
+		#if KEY_SCAN_ON
+		key_scan_fun();
+		#endif
+		if(key2_down==1)
+		{
+			act_get_data();
+			key2_down = 0;
+
+		}
 		#if UART_CMD_MODE
 		if(USART_RX_STA &= 0x8000)  // 接受串口的指令
 		{
@@ -1209,9 +1220,9 @@ static void MQTTReceiveTask(void *p_arg)
     {
         if (UART_TCP_buffLength() != 0)
         {
-			#if (EN_log_print >= 3)
+			#if (EN_LOG_PRINT >= 3)
             F407USART1_SendString("+UART_TCP\r\n");
-			#endif // EN_log_print	
+			#endif // EN_LOG_PRINT	
             //处理接收到的MQTT消息，并根据不同的消息类型做不同的处理
             type = MQTTPacket_read(MQTT_Receivebuf, MQTT_RECEIVEBUFF_MAXLENGTH, transport_getdata);
             switch (type)
@@ -1228,7 +1239,7 @@ static void MQTTReceiveTask(void *p_arg)
 					if (MQTTDeserialize_publish(&dup, &qos, &retained, &packetid, &topicName, &payload, &payloadlen,
 												MQTT_Receivebuf, MQTT_RECEIVEBUFF_MAXLENGTH) == 1)
 					{					
-						#if (EN_log_print >= 3)
+						#if (EN_LOG_PRINT >= 3)
 						int i;
 						F407USART1_SendString("payload:");
 						for (i = 0; i < payloadlen; i++)
@@ -1237,7 +1248,7 @@ static void MQTTReceiveTask(void *p_arg)
 							// 打印缓存区域的内容
 						}
 						F407USART1_SendString("\r\n");
-						#endif // EN_log_print	
+						#endif // EN_LOG_PRINT	
 						// 理论上这里需要进行一定的检验
 						check_response(payload,payloadlen);
 					}
@@ -1284,7 +1295,8 @@ static void MQTTReceiveTask(void *p_arg)
 
 
 /**
- * @description: 4G模组任务
+ * @description: 4G模组连接MQTT服务器
+ * 非必要任务，调用MQTT函数连接服务器
  * @param {type} 
  * @return {type} 
  */
@@ -1302,14 +1314,14 @@ static void LTEModuleTask(void *p_arg)
 	res = ec25_Init();  // 初始化4G模组并联网
 	if(res == EC25_ERR_NONE)
 	{ 
-		printf("*EC25 ec25_Init succeed\r\n");
+		printf("[LOG]EC25 ec25_Init succeed\r\n");
 		ec25_SynLocalTime();
 		ec25_QueeryCSQ();
 		/* gpsx.gpssta = ec25_QueeryGPS();*/
 	}
 	else
 	{
-		F407USART1_SendString("*EC25 ec25_Init error\r\n");
+		F407USART1_SendString("[WARMING]EC25 ec25_Init error\r\n");
 	}
     while (1)
 	{    // ? 这里的重连可能与发送时候的重连冲突    
@@ -1385,7 +1397,9 @@ static void LTEModuleTask(void *p_arg)
 u16 time_cnt=1;
 char up_down=1;
 /**
- * @description: 
+ * @description: 定时监控任务
+ * 务必要，可以停用
+ * 10s一个循环
  * @param {type} 
  * @return {type} 
  */

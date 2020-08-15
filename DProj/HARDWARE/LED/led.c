@@ -1,7 +1,7 @@
 /*
  * @Author: Howell
  * @Date: 2020-08-10 17:34:17
- * @LastEditTime: 2020-08-11 10:03:08
+ * @LastEditTime: 2020-08-15 05:30:07
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \USERd:\Documents\GitProject\DataCollection\DProj\HARDWARE\LED\led.c
@@ -26,8 +26,8 @@ void LED_Init(void)
 	GPIO_Init(GPIOE, &GPIO_InitStructure);			   //初始化
 
 	GPIO_SetBits(GPIOE, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4); //GPIOE2,E3,E4设置高，灯灭
-	#if EN_log_print>=2
-	printf("*LED_Init\r\n");
+	#if EN_LOG_PRINT>2
+	printf("[LOG]LED_Init\r\n");
 	#endif
 }
 

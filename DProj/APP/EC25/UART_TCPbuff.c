@@ -238,9 +238,9 @@ uint8_t UART_TCPbuff_Run(uint8_t (*getbyte)(char *))
 		// check指定字符串后接的内容
 		if (waitAppendOK == 0 && waitStringOK == 1)
 		{
-			#if (EN_log_print >= 3)
+			#if (EN_LOG_PRINT >= 3)
 			F407USART1_SendByte(data);
-			#endif // EN_log_print			
+			#endif // EN_LOG_PRINT			
 			waitAppendBuff[waitAppendBuffStep++] = data; 
 			if ((waitAppendBuffStep >= waitAppendBuffLen) || (temp == '\r' && data == '\n'))
 			{
