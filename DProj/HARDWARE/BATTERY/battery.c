@@ -1,7 +1,7 @@
 /*
  * @Author: Howell
  * @Date: 2020-08-10 17:34:17
- * @LastEditTime: 2020-08-14 20:01:39
+ * @LastEditTime: 2020-08-15 23:29:52
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \USERd:\Documents\GitProject\DataCollection\DProj\HARDWARE\BATTERY\battery.c
@@ -240,12 +240,12 @@ u8 battery_data_get(void)
 		IWDG_Feed();//喂狗
 		if(battery_data_anay())
 		{
-			printf("*Successd to get Battery data\r\n");
+			printf("[LOG]Successd to get Battery data\r\n");
 			return 1;
 		}
 	}
+	printf("[WARN]Fail to get Battery data\r\n");
 	return 0;
-	printf("*Fail to get Battery data\r\n");
 }
 
 

@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-08-14 21:16:54
+ * @LastEditTime: 2020-08-15 23:12:07
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \USERc:\Users\lihao\Documents\Git Projects\DataCollection\DProj\HARDWARE\SHT\SHT2x.c
+ */
 #include "SHT2x.h"
 #include "delay.h"
 #include "myiic_sht20.h"
@@ -82,20 +90,18 @@ u8 SHT2x_GetTempandHumiPollAvg(void)
 		if(shtTEMP>100 || shtTEMP<-100)
 		{
 			SHT2x_Init();
-			printf("*!Sht31 error TEMP:%f,HUMI:%f\r\n",shtTEMP, shtHUMI);
+			printf("[WARNING]Sht31 error TEMP:%f,HUMI:%f\r\n",shtTEMP, shtHUMI);
 			delay_ms(500);
 			continue;
 		}
 
 		SHT20.TEMP_POLL = shtTEMP;
 		SHT20.HUMI_POLL = shtHUMI;
-		printf("*Sht31 woking well, temp:%f, humi:%f\r\n",shtTEMP,shtHUMI);
+		printf("[LOG]Sht31 woking well, temp:%f, humi:%f\r\n",shtTEMP,shtHUMI);
 		return 1;
 	}
 	SHT20.TEMP_POLL = -9999;
 	SHT20.HUMI_POLL = -9999;
-	printf("*!Sht31 woking error\r\n");
+	printf("[WARNING]Sht31 woking error\r\n");
 	return 0;
-	
-	
 }

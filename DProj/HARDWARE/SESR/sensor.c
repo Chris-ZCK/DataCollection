@@ -2,38 +2,39 @@
 
 void Data_Packing_sens(char *msg)
 {
-	// sensor data
-	u8 res;
 	char now_time[30];
-	float temp = 23.0;
-	float hum = 50.2;
-	float lus = 100;
-	float BaroPressure=100000;
-	float gps_longitude = 120.11611; 
-	float gps_latitude = 30.26361;  
-	float gps_altitude = 30.0;
-	char tempdata[100];
-	int ec25_csq=20;
-	int relay_sta=0;
-	// data updata
-	// time
+	char tempdata[100];  // 缓存数据
+
+	float temp = -9999;
+	float hum = -9999;
+	float lus = -9999;
+	float BaroPressure = -9999;
+	float gps_longitude = -9999; 
+	float gps_latitude = -9999;  
+	float gps_altitude = -9999;
+	int ec25_csq = -9999;
+
+	int relay_sta = 0;  // 继电器数据，默认为零
+	
+	// 更新当前时间
 	calendar_get_time(&calendar);
 	calendar_get_date(&calendar);
 	sprintf(now_time,"%d-%d-%d %d:%d:%d",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	
 	#if SENSOR_MODE
+	// 获取各类传感器数据
 	SHT2x_GetTempandHumiPollAvg();
 	temp=SHT20.TEMP_POLL;
 	hum=SHT20.HUMI_POLL;
 	lus=FluxMeasurement_get();
 	BaroPressure=MS5611_Compensation_Calcu();
-	battery_data_get(); 
-	//closeReLoad();
 	#endif
+
+	// 4G数据
 	if(ec25_on_flag==1)
 	{
-		
 		ec25_csq = ec25_QueeryCSQ();
-		/*
+		#if QUEERY_GPS_ON
 		// 判断是否正常获取GPS数据
 		if(gpsx.gpssta!=0) 
 		{
@@ -62,20 +63,19 @@ void Data_Packing_sens(char *msg)
 			gps_altitude = -9999;
 			printf("*GPS is unlocated\r\n");
 		}
-		*/
+		#endif
 	}
 	else
 	{
 		ec25_csq = -9999;
-		printf("*!not ec25 queery %d\r\n", ec25_csq);
+		printf("[WARNING]not ec25 queery %d\r\n", ec25_csq);
 		
 		gps_longitude = -9999;
 		gps_latitude = -9999;
 		gps_altitude = -9999;
-		printf("*!not ec25 queery GPS\r\n");
-		
-		
+		printf("[WARNING]not ec25 queery GPS\r\n");
 	}
+
 	// data pack
 	sprintf(msg,"msgty//sdata|sid//11|time//%s",now_time);
 	
@@ -88,13 +88,13 @@ void Data_Packing_sens(char *msg)
 	//MS5611-pres 
     sprintf(tempdata,"|p/MS5611/%f",BaroPressure);
 	strcat(msg,tempdata);
-	
 	//MAX44009-lus
 	sprintf(tempdata,"|lus/MAX44009/%f",lus);
 	strcat(msg,tempdata);
 	
+	#if QUEERY_BATTERY_ON
 	//Battery 
-	/*
+	battery_data_get(); 
 	sprintf(tempdata,"|bv/%s/%d",battery.info,(int)(battery.total_voltage*2));
 	*
 	strcat(msg,tempdata);
@@ -116,7 +116,7 @@ void Data_Packing_sens(char *msg)
 
 	sprintf(tempdata,"|br//%d",battery.remain_capacity);
 	strcat(msg,tempdata);
-	*/
+	#endif
 	
 	//GPS modle
 	sprintf(tempdata,"|LO/gps/%f",gps_longitude);
@@ -133,19 +133,17 @@ void Data_Packing_sens(char *msg)
 	strcat(msg,tempdata);
 	
 	// relay state
-	// <!强制置零>
-	relay_sta = 0; 
 	sprintf(tempdata,"|OUT/RLY/%d\n",relay_sta);
 	strcat(msg,tempdata);	
 
-printf("----------\r\n*info:%s\r\n----------\r\n", msg);
+	printf("----------\r\n*info:%s\r\n----------\r\n", msg);
 }
 
 void act_get_data(void)
 {	
 	LED_YELLOW_ON();
 	u8 bufmessages[500];
-	F407USART1_SendString("->\r\n$act:act_get_data...\r\n");
+	F407USART1_SendString("[INST]]act:act_get_data...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
 	LED_YELLOW_OFF();
@@ -157,7 +155,7 @@ void act_get_data(void)
 u8 act_send_data(void)
 {
 	LED_YELLOW_ON();
-	F407USART1_SendString("->\r\n$act:act_send_data...\r\n");
+	F407USART1_SendString("[INST]act:act_send_data...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
 	LED_YELLOW_OFF();

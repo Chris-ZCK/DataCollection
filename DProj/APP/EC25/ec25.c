@@ -773,7 +773,7 @@ int ec25_QueeryCSQ(void)
 	uint8_t *buff;
 	uint8_t res, i;
 	u16 ec25_data_csq;
-	F407USART1_SendString("#ec25_QueeryCSQ\r\n");
+	F407USART1_SendString("[LOG]ec25_QueeryCSQ\r\n");
 	i = 1;
 	while (i++)
 	{
@@ -781,12 +781,12 @@ int ec25_QueeryCSQ(void)
 		// Ñ­»·³¢ÊÔ10´Î
 		if (i > 5)
 		{
-			F407USART1_SendString("\r\n\r\n*!(ec25_QueeryCSQ/AT+CSQ)please check send status!\r\n\r\n");
+			F407USART1_SendString("[WARNING]ec25_QueeryCSQ/AT+CSQ,please check send status!\r\n\r\n");
 			delay_ms(1000);
 			return -9999;
 		}
-		//AT+CSQ
-		//+CSQ: 28,99
+
+		//AT+CSQ ¡ú +CSQ: 28,99
 		waitString_set("+CSQ: ", 6);
 		buff = waitAppend_set(30);
 		F407USART3_SendString("AT+CSQ\r\n");
@@ -794,12 +794,12 @@ int ec25_QueeryCSQ(void)
 		res = WaitAppend_OKflag(10000);
 		if (res == 0)
 		{
-			F407USART1_SendString("*!Fail:ec25_QueeryCSQ\r\n");
+			F407USART1_SendString("[WARNING]Fail:ec25_QueeryCSQ\r\n");
 			delay_ms(100);
 			continue;
 		}
 		ec25_data_csq = stringtoNum((char *)buff);
-		printf("*info:Qurry EC25 CSQ|%d\r\n",ec25_data_csq);
+		printf("[INFO]Qurry EC25 CSQ|%d\r\n",ec25_data_csq);
 		delay_ms(100);
 		return ec25_data_csq;
 	}

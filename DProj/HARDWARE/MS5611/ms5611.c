@@ -225,7 +225,7 @@ int32_t MS5611_Compensation_Calcu(void)
 	}
 	if(t>=3)
 	{
-		printf("*!MS5611 error,P:%d\r\n",-9999);
+		printf("[WARNING]MS5611 error,P:%d\r\n",-9999);
 		return -9999;  //Ìø³ö
 	}
 	if (i == 20)
@@ -243,7 +243,7 @@ int32_t MS5611_Compensation_Calcu(void)
     {
         i = j = 0;
     }
-	printf("*MS5611 working well, pre:%d\r\n",P_last);	
+	printf("[LOG]MS5611 working well, pre:%d\r\n",P_last);	
 	return P_last;
 }
 

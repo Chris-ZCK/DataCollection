@@ -158,9 +158,9 @@ int32_t FluxMeasurement_get(void)
 			max44009_initialize();
 			continue;
 		}
-		printf("*MAX44009 woking well, lux:%d\r\n", lus);
+		printf("[LOG]MAX44009 woking well, lux:%d\r\n", lus);
 		return lus;
 	}
-	printf("*!MAX44009 woking error\r\n");
+	printf("[WARNING]MAX44009 woking error\r\n");
 	return -9999;
 }

@@ -121,6 +121,10 @@ extern struct flash_package eerom;
 #define ANAY_TASK_ON  0
 // 按键控制测试
 #define KEY_SCAN_ON 1
+// 是否询问GPS数据
+#define QUEERY_GPS_ON 0
+// 是否询问电池数据
+#define QUEERY_BATTERY_ON 0
 // 串口控制
 #define UART_CMD_MODE 0
 // 获取电池数据据版本：1 老版本 2 新版本
