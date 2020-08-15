@@ -26,7 +26,7 @@ void mqtt_state_set(unsigned char state)
 		LED_BLUE_ON();
 	else	
 		LED_BLUE_OFF();
-	printf("*mqtt_state_set %d\r\n", state);
+	printf("[INFO]mqtt_state_set %d\r\n", state);
 }
 // ping◊¥Ã¨
 static unsigned char mqtt_ping_state = 0;
@@ -136,7 +136,7 @@ MY_MQTT_ERR mqtt_publish_data(char *pTopic, char *pMessage, uint16_t msglen)// ”
 				perst_flag = 1;
 				try_cnt = 0;
 				ec25_Restart();
-				printf("*ec25_reset ec25_reset ec25_reset!!!!");
+				printf("[WARNING]ec25_reset ec25_reset ec25_reset!!!!");
 			}
 			else if (perst_flag == 1)
 			{
@@ -144,15 +144,15 @@ MY_MQTT_ERR mqtt_publish_data(char *pTopic, char *pMessage, uint16_t msglen)// ”
 
 				// ±£¥Ê÷–º‰±‰¡ø
 				// ±£¥Ê÷–º‰±‰¡ø
-				printf("Network ERROR!!!!");
-				F407USART1_SendString("mqtt_publish_s failed:MY_MQTT_ERR_SEND_FAIL\r\n");
+				printf("[WARNING]Network ERROR!!!!");
+				F407USART1_SendString("[WARNING]mqtt_publish_s failed:MY_MQTT_ERR_SEND_FAIL\r\n");
 				
 				printf("Force write function_f=0, ready to sleep!!!!\r\n");
 				function_f = 0;  // Ω¯»ÎÀØ√ﬂ
 				return MY_MQTT_ERR_SEND_FAIL;
 			}
 		}
-		printf("*mqtt_publish failed, try to reconnect...|{try_cnt=%d}\r\n", try_cnt);
+		printf("*[WARNING]mqtt_publish failed, try to reconnect...|{try_cnt=%d}\r\n", try_cnt);
 		// reconnect
 		i = 0, j = 0;
 		while (mqtt_connect() == 0) // ÷ÿ–¬Ω®¡¢MQTT¡¨Ω”,÷ÿ¡¨π˝≥Ãª·πÿ±’Õ¯¬Á£¨»ª∫Û÷ÿ–¬¡¨Ω”£°

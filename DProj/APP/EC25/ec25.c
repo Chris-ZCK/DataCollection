@@ -48,7 +48,7 @@ EC25_ERR ec25_Init(void)
 void ec25_reset(int ms)
 {
 #if (EN_LOG_PRINT >= 3)
-	F407USART1_SendString("reset_modle\r\n");
+	F407USART1_SendString("[LOG]ec25_reset_modle\r\n");
 #endif
 	EC25_PERST = 1;
 	delay_ms(ms);
@@ -64,13 +64,13 @@ void ec25_DTR_Sleep(void)
 	waitString_set("OK", 2);
 	// 关闭网络，否则可能会打开失败
 	F407USART3_SendString("AT+QICLOSE=0\r\n");
-	F407USART1_SendString("AT+QICLOSE=0\r\n");
+	F407USART1_SendString("[LOG]AT+QICLOSE=0\r\n");
 	WaitString_OKflag(5000);
 
 	// Deactivate a PDP Context
 	waitString_set("OK:", 2);
 	F407USART3_SendString("AT+QIDEACT=1\r\n");
-	F407USART1_SendString("AT+QIDEACT=1\r\n");
+	F407USART1_SendString("[LOG]AT+QIDEACT=1\r\n");
 	WaitString_OKflag(5000);
 
 	EC24_DTR = 1;
@@ -97,7 +97,7 @@ void ec25_Turn_off(void)
 	// 关闭网络，否则可能会打开失败
 	F407USART3_SendString("AT+QPOWD\r\n");
 #if (EN_LOG_PRINT >= 1)
-	F407USART1_SendString("AT+QPOWD\r\n");
+	F407USART1_SendString("[LOG]AT+QPOWD\r\n");
 #endif
 	WaitString_OKflag(5000);
 	delay_ms(1000);
@@ -133,32 +133,32 @@ EC25_ERR ec25_tcp_Conditon_Normal(void)
 	{
 		waitString_set("OK", 2);
 		F407USART3_SendString("AT\r\n");
-		F407USART1_SendString("AT\r\n");
+		F407USART1_SendString("[LOG]AT\r\n");
 		if (WaitString_OKflag(2000))
 			break;
 	} // maxium wait 20s
 	// config uart
 	waitString_set("OK", 2);
 	F407USART3_SendString("AT+IFC=2,2\r\n");
-	F407USART1_SendString("AT+IFC=2,2\r\n");
+	F407USART1_SendString("[LOG]AT+IFC=2,2\r\n");
 	WaitString_OKflag(3000);
 	//config gps
 	
 	waitString_set("OK", 2);
 	F407USART3_SendString("AT+QGPS=1,1\r\n");
-	F407USART1_SendString("$AT+QGPS=1,1\r\n");
+	F407USART1_SendString("[LOG]AT+QGPS=1,1\r\n");
 	if(WaitString_OKflag(1000))
-		printf("*success open gps\r\n");
+		printf("[LOG]success open gps\r\n");
 	else
-		printf("*!Try open gps\r\n");
+		printf("[LOG]Try open gps\r\n");
 	
 	waitString_set("OK", 2);
 	F407USART3_SendString("AT+QGPSCFG=\"autogps\",1\r\n");
-	F407USART1_SendString("$AT+QGPSCFG=\"autogps\",1\r\n");
+	F407USART1_SendString("[LOG]AT+QGPSCFG=\"autogps\",1\r\n");
 	if(WaitString_OKflag(3000))
-		printf("*success autogps\r\n");
+		printf("[LOG]success autogps\r\n");
 	else
-		printf("*!fail autogps\r\n");
+		printf("[WARNING]!fail autogps\r\n");
 	
 	/* 用于设置默认的UART波特率 */
 	#if CHANGE_BAUD
@@ -184,16 +184,16 @@ EC25_ERR ec25_Act_PDP_Condition(void)
 	{
 		waitString_set("+CPIN: READY", 12);
 		F407USART3_SendString("AT+CPIN?\r\n");
-		F407USART1_SendString("AT+CPIN?\r\n");
+		F407USART1_SendString("[LOG]AT+CPIN?\r\n");
 		res = WaitString_OKflag(2000);
 		if (res)
 		{
-			printf("Find (U)SIM card\r\n");
+			printf("[LOG]Find (U)SIM card\r\n");
 			break;
 		}
 		else if (i > 10)
 		{
-			printf("failed to identify (U)SIM card\r\n");
+			printf("[WARNING]failed to identify (U)SIM card\r\n");
 			return EC25_ERR_CPIN;
 		} // maxium wait 20s
 	}
@@ -204,16 +204,16 @@ EC25_ERR ec25_Act_PDP_Condition(void)
 	{
 		waitString_set("+CREG: 0,1", 10);
 		F407USART3_SendString("AT+CREG?\r\n");
-		F407USART1_SendString("AT+CREG?\r\n");
+		F407USART1_SendString("[LOG]AT+CREG?\r\n");
 		res = WaitString_OKflag(2000);
 		if (res)
 		{
-			printf("Register on CS domain service\r\n");
+			printf("[LOG]Register on CS domain service\r\n");
 			break;
 		}
 		else if (i > 20)
 		{
-			printf("Failed to register on CS domain service\r\n");
+			printf("[WARNING]Failed to register on CS domain service\r\n");
 			return EC25_ERR_CREG;
 		} // maxium wait 40s
 	}
@@ -223,16 +223,16 @@ EC25_ERR ec25_Act_PDP_Condition(void)
 	{
 		waitString_set("+CGREG: 0,1", 10);
 		F407USART3_SendString("AT+CGREG?\r\n");
-		F407USART1_SendString("AT+CGREG?\r\n");
+		F407USART1_SendString("[LOG]AT+CGREG?\r\n");
 		res = WaitString_OKflag(2000);
 		if (res)
 		{
-			printf("Register on PS domain service\r\n");
+			printf("[LOG]Register on PS domain service\r\n");
 			break;
 		}
 		else if (i > 20)
 		{
-			printf("Failed to register on PS domain service\r\n");
+			printf("[WARNING]Failed to register on PS domain service\r\n");
 			return EC25_ERR_CGREG;
 		} // maxium wait 40s
 	}
@@ -266,11 +266,11 @@ EC25_ERR ec25_Act_PDP_Condition(void)
 	{
 		waitString_set("OK", 2);
 		F407USART3_SendString("AT+QIACT=1\r\n");
-		F407USART1_SendString("AT+QIACT=1\r\n");
+		F407USART1_SendString("[LOG]AT+QIACT=1\r\n");
 		res = WaitString_OKflag(5000);
 		if (!res)
 		{
-			printf("Fail:AT+QIACT\r\n");
+			printf("[WARNING]Fail:AT+QIACT\r\n");
 			//waitString_set("OK:", 2);
 			//F407USART3_SendString("AT+QIDEACT=1\r\n");
 			//F407USART1_SendString("AT+QIDEACT=1\r\n");
@@ -283,15 +283,15 @@ EC25_ERR ec25_Act_PDP_Condition(void)
 		{
 			waitString_set("+QIACT", 6);
 			F407USART3_SendString("AT+QIACT?\r\n");
-			F407USART1_SendString("AT+QIACT?\r\n");
+			F407USART1_SendString("[LOG]AT+QIACT?\r\n");
 			res = WaitString_OKflag(2000);
 			if (res)
 			{
-				printf("Success:AT+QIACT\r\n");
+				printf("[LOG]Success:AT+QIACT\r\n");
 				return EC25_ERR_NONE;
 			}
 		}
-		printf("Failed to register on PS domain service\r\n");
+		printf("[WARNING]Failed to register on PS domain service\r\n");
 	}
 	return EC25_ERR_QIACT;
 }
@@ -307,23 +307,23 @@ EC25_ERR ec25_TCPConnect(char *ip, uint16_t port)
 	char ptr[50];
 	// close Network
 	i = 1;
-	printf("*Function:ec25_TCPConnect\r\n");
+	printf("[LOG]Function:ec25_TCPConnect\r\n");
 	sprintf(ptr, "AT+QIOPEN=1,0,\"TCP\",\"%s\",%d,0,1\r\n", ip, port);
 	while (i++)
 	{
 		waitString_set("OK", 2);
 		// 关闭网络，否则可能会打开失败
 		F407USART3_SendString("AT+QICLOSE=0\r\n");
-		printf("@AT+QICLOSE=0|{(try i<10)i:%d}\r\n",i);
+		printf("[LOG]AT+QICLOSE=0|{(try i<10)i:%d}\r\n",i);
 		res = WaitString_OKflag(3000);
 		if (res)
 		{
-			printf("*succeed QICLOSE\r\n");
+			printf("[LOG]succeed QICLOSE\r\n");
 			break;
 		}
 		else if (i > 10)
 		{
-			printf("*Fail:AT+QICLOSE\r\n");
+			printf("[WARNING]Fail:AT+QICLOSE\r\n");
 			return EC25_ERR_QICLOSE;
 		} // maxium wait 40s
 	}
@@ -333,25 +333,25 @@ EC25_ERR ec25_TCPConnect(char *ip, uint16_t port)
 	{
 		waitString_set("+QIOPEN: 0,0", 12);
 		F407USART3_SendString(ptr);
-		printf("@%s", ptr);
+		printf("[INFO]ptr:%s", ptr);
 		WaitString_OKflag(5000);
 		delay_ms(500);
 		// Querry QISTATE
 		waitString_set("+QISTATE", 8);
 		F407USART3_SendString("AT+QISTATE?\r\n");
-		F407USART1_SendString("@AT+QISTATE?\r\n");
+		F407USART1_SendString("[LOG]AT+QISTATE?\r\n");
 		res = WaitString_OKflag(2000);
 		if (res)
 		{
-			F407USART1_SendString("*ec25_TCP_Connected\r\n");
+			F407USART1_SendString("[LOG]ec25_TCP_Connected\r\n");
 			break;
 		}
 		else if (i > 3)
 		{
-			F407USART1_SendString("*Fail:ec25_TCP_Connect\r\n");
+			F407USART1_SendString("[WARNING]Fail:ec25_TCP_Connect\r\n");
 			return EC25_ERR_QIOPEN;
 		} // maxium wait 40s
-		printf("*Try open connect|{(if i>3)i=%d}\r\n",i);
+		printf("[LOG]Try open connect|{(if i>3)i=%d}\r\n",i);
 	}
 	//ec25_SynLocalTime();
 	return EC25_ERR_NONE;
@@ -366,7 +366,7 @@ EC25_ERR ec25_TCPDisConnect(void)
 	waitString_set("OK", 2);
 	// 关闭网络，否则可能会打开失败
 	F407USART3_SendString("AT+QICLOSE=0\r\n");
-	F407USART1_SendString("AT+QICLOSE=0\r\n");
+	F407USART1_SendString("[LOG]AT+QICLOSE=0\r\n");
 	return (EC25_ERR)WaitString_OKflag(5000);
 }
 #if 0
@@ -612,7 +612,7 @@ uint32_t ec25_TCPSendData(char *data, uint16_t length)
 		res = ec25_TCPSendDataPack(data + index, UART_SEND_PACK_LENGTH_MAX);
 		if (res == 0)
 		{
-			printf("Fail:ec25_TCPSendDataPack-3\r\n");
+			printf("[WARNING]Fail:ec25_TCPSendDataPack-3\r\n");
 			return 0;
 		}
 		len -= UART_SEND_PACK_LENGTH_MAX;
@@ -623,7 +623,7 @@ uint32_t ec25_TCPSendData(char *data, uint16_t length)
 		res = ec25_TCPSendDataPack(data + index, len);
 		if (res == 0)
 		{
-			printf("Fail:ec25_TCPSendDataPack-4\r\n");
+			printf("[WARNING]Fail:ec25_TCPSendDataPack-4\r\n");
 			return 0;
 		}
 		index += len;
@@ -651,7 +651,7 @@ uint16_t ec25_TCPSendDataPack(char *data, uint16_t length)
 	{
 		if(i>3)
 		{
-			F407USART1_SendString("\r\n\r\n*!(ec25_TCPSendDataPack/AT+QISEND)please check send status!\r\n\r\n");
+			F407USART1_SendString("[WARNING](ec25_TCPSendDataPack/AT+QISEND)please check send status!\r\n\r\n");
 			delay_ms(1000);
 			return 0;
 		}
@@ -662,7 +662,7 @@ uint16_t ec25_TCPSendDataPack(char *data, uint16_t length)
 		res = WaitAppend_OKflag(3000);
 		if (res == 0)
 		{
-			printf("*!Fail:QISEND Queey Data, ec25_TCPSendDataPack-2：%d\r\n",i);
+			printf("[WARNING]Fail:QISEND Queey Data, ec25_TCPSendDataPack-2：%d\r\n",i);
 			delay_ms(100);
 			continue;
 		}
@@ -686,13 +686,13 @@ uint16_t ec25_TCPSendDataPack(char *data, uint16_t length)
 	waitString_set(">", 1);
 	sprintf(myBUF50, "AT+QISEND=0,%d\r\n", length);
 	F407USART3_SendString(myBUF50);
-#if (EN_LOG_PRINT >= 3)
+	#if EC25_LOG_PRINT 
 	F407USART1_SendString(myBUF50);
-#endif // EN_LOG_PRINT
+	#endif // EC25_LOG_PRINT
 	res = WaitString_OKflag(5000);
 	if (res == 0)
 	{
-		printf("Fail:AT+QISEND=0, ec25_TCPSendDataPack-1");
+		printf("[WARNING]Fail:AT+QISEND=0, ec25_TCPSendDataPack-1");
 		return 0;
 	}
 	// send data
@@ -703,12 +703,12 @@ uint16_t ec25_TCPSendDataPack(char *data, uint16_t length)
 	res = WaitAppend_OKflag(10000);
 	if (res == 0)
 	{
-		F407USART1_SendString("Fail:QISEND Data, ec25_TCPSendDataPack-2：");
+		F407USART1_SendString("[WARNING]Fail:QISEND Data, ec25_TCPSendDataPack-2：");
 		return 0;
 	}
 	if (buff[0]=='F' && buff[1]=='A') // FAIL
 	{
-		F407USART1_SendString("\r\n\r\n*!(ec25_TCPSendDataPack/SEND DATA)please check send status!\r\n\r\n");
+		F407USART1_SendString("[WARNING](ec25_TCPSendDataPack/SEND DATA)please check send status!\r\n\r\n");
 		delay_ms(1000);
 		return 0;
 	}	
@@ -719,14 +719,14 @@ uint16_t ec25_SynLocalTime(void)
 {
 	uint8_t *buff;
 	uint8_t res, i;
-	F407USART1_SendString("ec25_SynLocalTime\r\n");
+	F407USART1_SendString("[LOG]ec25_SynLocalTime\r\n");
 	i = 1;
 	while (i++)
 	{
 		// 循环尝试10次
 		if (i > 3)
 		{
-			F407USART1_SendString("\r\n\r\n*!(ec25_SynLocalTime/AT+QNTP)please check send status!\r\n\r\n");
+			F407USART1_SendString("[WARNING](ec25_SynLocalTime/AT+QNTP)please check send status!\r\n\r\n");
 			delay_ms(3000);
 			return 0;
 		}
@@ -738,7 +738,7 @@ uint16_t ec25_SynLocalTime(void)
 		res = WaitAppend_OKflag(5000);
 		if (res == 0)
 		{
-			F407USART1_SendString("Fail:QISEND Synchronize Local Time, error TCP\r\n");
+			F407USART1_SendString("[WARNING]Fail:QISEND Synchronize Local Time, error TCP\r\n");
 			delay_ms(100);
 			continue;
 		}
@@ -746,19 +746,19 @@ uint16_t ec25_SynLocalTime(void)
 		{
 			calendar_get_time(&calendar);
 			calendar_get_date(&calendar);
-			printf("Timestamp:%d/%d/%d %d:%d:%d*\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+			printf("[INFO]Timestamp-B:%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 			calendar.w_year=stringtoNum((char *)buff+3);
 			calendar.w_month=stringtoNum((char *)buff+8);
 			calendar.w_date=stringtoNum((char *)buff+11);
 			calendar.hour=stringtoNum((char *)buff+14);
 			calendar.min=stringtoNum((char *)buff+17);
 			calendar.sec=stringtoNum((char *)buff+20);
-			printf("Timestamp:%d/%d/%d %d:%d:%d#\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+			printf("[INFO]Timestamp-A:%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 			my_RTC_Set_Time(calendar);
 		}
 		else
 		{
-			F407USART1_SendString("Fail:QISEND anay Synchronize Local Time, error anay\r\n");
+			F407USART1_SendString("[WARNING]Fail:QISEND anay Synchronize Local Time, error anay\r\n");
 			continue;
 		}
 
@@ -813,47 +813,47 @@ int ec25_QueeryGPS(void)
 {
 	uint8_t *buff;
 	uint8_t res, i;
-	u16 ec25_data_csq;
-	F407USART1_SendString("ec25_QueeryGPS\r\n");
+	// u16 ec25_data_csq;
+	F407USART1_SendString("[LOG]ec25_QueeryGPS\r\n");
 
 	IWDG_Feed();
 	// 可以多次打开
 	waitString_set("OK", 2);
 	F407USART3_SendString("AT+QGPS=1\r\n");
-	F407USART1_SendString("$AT+QGPS=1\r\n");
+	F407USART1_SendString("[LOG]AT+QGPS=1\r\n");
 	res = WaitString_OKflag(2000);
 	if (res)
 	{
-		printf("*Success Turn on GNSS\r\n");
+		printf("[LOG]Success Turn on GNSS\r\n");
 		
 	}
 	else
 	{
-		printf("*!Try Turn on GNSS\r\n");
+		printf("[LOG]Try Turn on GNSS\r\n");
 	}
 	
 	waitString_set("+QGPS: 1", 8);
 	F407USART3_SendString("AT+QGPS?\r\n");
-	F407USART1_SendString("$AT+QGPS?\r\n");
+	F407USART1_SendString("[LOG]AT+QGPS?\r\n");
 	res = WaitString_OKflag(3000);
 	if(res)
 	{
-		printf("$GNSS is Working\r\n");
+		printf("[LOG]GNSS is Working\r\n");
 	}
 	else
 	{
 		waitString_set("OK", 2);
 		F407USART3_SendString("AT+QGPS=1\r\n");
-		F407USART1_SendString("$AT+QGPS=1\r\n");
+		F407USART1_SendString("[LOG]AT+QGPS=1\r\n");
 		res = WaitString_OKflag(2000);
 		if (!res)
 		{
-			printf("$Fail Turn on GNSS\r\n");
+			printf("[WARNING]Fail Turn on GNSS\r\n");
 			return 0;
 		}
 		else
 		{
-			printf("$Success Turn on GNSS\r\n");
+			printf("[LOG]Success Turn on GNSS\r\n");
 		}
 		
 	}		
@@ -892,17 +892,17 @@ int ec25_QueeryGPS(void)
 		waitString_set("+QGPSLOC: ", 10);
 		buff = waitAppend_set(100);
 		F407USART3_SendString("AT+QGPSLOC?\r\n");
-		F407USART1_SendString("$AT+QGPSLOC?\r\n");
+		F407USART1_SendString("[LOG]AT+QGPSLOC?\r\n");
 		//+QGPSLOC: 122809.0,3015.8155N,12006.9562E,1.3,47.0,2,0.00,0.0,0.0,171019,03<CR><LF>	
 		res = WaitAppend_OKflag(2000);
 		if (res)
 		{
-			printf("Qurry EC25 successful\r\n");
+			printf("[LOG]Qurry EC25 successful\r\n");
 			break;
 		}
 		else
 		{
-			printf("*Try:ec25_QueeryGPS cnt:(max 8)%d\r\n",i);
+			printf("[LOG]Try:ec25_QueeryGPS cnt:(max 8)%d\r\n",i);
 			delay_ms(100);
 		}
 		delay_ms(1000);
@@ -911,7 +911,7 @@ int ec25_QueeryGPS(void)
 	#endif
 	waitString_set("OK", 2);
 	F407USART3_SendString("AT+QGPSEND\r\n");
-	F407USART1_SendString("$AT+QGPSEND\r\n");
+	F407USART1_SendString("[LOG]AT+QGPSEND\r\n");
 	WaitAppend_OKflag(2000);
 	
 	if (res)
@@ -920,13 +920,13 @@ int ec25_QueeryGPS(void)
 		EC25_GNGGA_Analysis(&gpsx, buff);
 		*/
 		//ec25_data_csq = stringtoNum((char *)buff);
-		printf("Qurry EC25 successful\r\n");
+		printf("[LOG]Qurry EC25 successful\r\n");
 		delay_ms(100);
 		return 1;
 	}
 	else
 	{
-		printf("*Fail:ec25_QueeryGPS\r\n");
+		printf("[WARNING]Fail:ec25_QueeryGPS\r\n");
 		return 0;
 	}
 }

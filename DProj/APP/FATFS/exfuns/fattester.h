@@ -49,7 +49,7 @@ void mf_config_data_write_flash(u8 *data);
 void mf_config_data_read_flash(u8 *fbuf);
 void mf_send_log(void);
 extern u8 sd_ready_flag;
-u8 mf_check_dir(u8* path);
+void mf_check_dir(u8* path);
 #endif
 
 

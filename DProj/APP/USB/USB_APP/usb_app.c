@@ -173,8 +173,8 @@ u8 usbapp_user_app(void)
 	res = exf_getfree("1:", &total, &free);
 	if (res == 0)
 	{
-		printf("U Disk Total Size:%d MB\r\n", total);
-		printf("U Disk  Free Size:%d MB\r\n", free);
+		printf("[INFO]U Disk Total Size:%d MB\r\n", total);
+		printf("[INFO]U Disk  Free Size:%d MB\r\n", free);
 	}
 	else
 	{

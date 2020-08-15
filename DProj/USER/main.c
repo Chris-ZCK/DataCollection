@@ -148,7 +148,6 @@ void system_init(void)
 	LED_Init();   		// LED init
 	rng_Init();			// 随机数生成器初始化
 	mqtt_UID_set();     // 生成唯一id
-
 	
 	InitQueue(&Q_stage);  	// 初始化队列 
 	InitQueue(&Q_resent);  	// 初始化队列 	
@@ -921,7 +920,7 @@ static void MainTask(void *p_arg) // test fun
 {	
     OS_ERR err;
     //u8 res;
-	printf("MainTask run\r\n");
+	printf("[TASK]MainTask run\r\n");
 	delay_ms(500);  
 	while (1)
     {
@@ -932,12 +931,16 @@ static void MainTask(void *p_arg) // test fun
 		{
 			act_get_data();
 			key2_down = 0;
-
 		}
 		if(key3_down==1)
 		{
 			act_scan_camera();
 			key3_down = 0;
+		}
+		if(key1_down==1)
+		{
+			act_send_picture();
+			key1_down = 0;
 		}
 		#if UART_CMD_MODE
 		if(USART_RX_STA &= 0x8000)  // 接受串口的指令
@@ -1215,10 +1218,10 @@ static void MQTTReceiveTask(void *p_arg)
     // 数据长度
     int payloadlen;
 	//
-	int test_cnt=0;
+	// int test_cnt=0;
     //==============================
     u8 flag=1;  // 仅仅发送一次数据
-	printf("MQTTReceiveTask run\r\n");
+	printf("[TASK]MQTTReceiveTask run\r\n");
 	delay_ms(500);  
 
 	while (1)
@@ -1226,7 +1229,7 @@ static void MQTTReceiveTask(void *p_arg)
         if (UART_TCP_buffLength() != 0)
         {
 			#if (EN_LOG_PRINT >= 3)
-            F407USART1_SendString("+UART_TCP\r\n");
+            F407USART1_SendString("[LOG]+UART_TCP\r\n");
 			#endif // EN_LOG_PRINT	
             //处理接收到的MQTT消息，并根据不同的消息类型做不同的处理
             type = MQTTPacket_read(MQTT_Receivebuf, MQTT_RECEIVEBUFF_MAXLENGTH, transport_getdata);
@@ -1237,8 +1240,8 @@ static void MQTTReceiveTask(void *p_arg)
 				case CONNACK:          //连接请求响应
 					// mqtt_state_set(1); // 设置连接成功
 					mqtt_subscribe(MY_TOPIC_MSGDOWN);
-					printf("%s\r\n",MY_TOPIC_MSGDOWN);
-					F407USART1_SendString("MQTT Connect CONNACK\r\n");
+					printf("[INFO]my topic msgdown=\"%s\"\r\n",MY_TOPIC_MSGDOWN);
+					F407USART1_SendString("[LOG]MQTT Connect CONNACK\r\n");
 					break;
 				case PUBLISH: //订阅的消息,由别人发布
 					if (MQTTDeserialize_publish(&dup, &qos, &retained, &packetid, &topicName, &payload, &payloadlen,
@@ -1246,7 +1249,7 @@ static void MQTTReceiveTask(void *p_arg)
 					{					
 						#if (EN_LOG_PRINT >= 3)
 						int i;
-						F407USART1_SendString("payload:");
+						F407USART1_SendString("[LOG]payload:");
 						for (i = 0; i < payloadlen; i++)
 						{
 							printf("%0X",payload[i]);
@@ -1269,12 +1272,12 @@ static void MQTTReceiveTask(void *p_arg)
 				case SUBSCRIBE:
 					break;
 				case SUBACK: //订阅消息ack	
-					printf("MQTT subscrible SUBACK\r\n");
+					printf("[LOG]MQTT subscrible SUBACK\r\n");
 					mqtt_state_set(1); // 设置连接成功
 					// querry data
 					if(flag)
 					{
-						printf("$mysend_config-QUERRY CONFIG~~~~~\r\n");
+						printf("[LOG]mysend_config-QUERRY CONFIG~~~~~\r\n");
 						mysend_config("0");  // 获取参数
 						flag=0;
 					}
@@ -1313,7 +1316,7 @@ static void LTEModuleTask(void *p_arg)
 	static u8 mqtt_connect_flag=0;
 	static u8 f_reconnect=0; 
 	
-    printf("LTEModuleTask run\r\n");
+    printf("[TASK]LTEModuleTask run\r\n");
 	delay_ms(500);
 	
 	res = ec25_Init();  // 初始化4G模组并联网
@@ -1336,7 +1339,7 @@ static void LTEModuleTask(void *p_arg)
             {
 				if(mqtt_connect_flag>=3)
 				{
-					printf("*!Try mqtt_connect f:%d, restart ec25\r\n",mqtt_connect_flag);
+					printf("[LOG]Try mqtt_connect f:%d, restart ec25\r\n",mqtt_connect_flag);
 					ec25_Restart();
 					
 				}
@@ -1345,10 +1348,10 @@ static void LTEModuleTask(void *p_arg)
 					ec25_on_flag = 0;
 					function_f&=(~0x10); 
 					function_f&=(~0x20); 
-					printf("*forcus to close network\r\n");
+					printf("[LOG]forcus to close network\r\n");
 				}
                 mqtt_connect();
-				printf("Try mqtt_connect f:%d\r\n",mqtt_connect_flag);
+				printf("[LOG]Try mqtt_connect f:%d\r\n",mqtt_connect_flag);
 				
 				mqtt_connect_flag++;  // 累计尝试连接次数				
             }
@@ -1364,21 +1367,21 @@ static void LTEModuleTask(void *p_arg)
             {
 				u16 cnt=0;
 				mqtt_Ping();
-				printf("ping mqtt .....\r\n");
+				printf("[LOG]ping mqtt .....\r\n");
 				while(!mqtt_ping_state_get())
 				{
 					cnt++;
 					OSTimeDly(10,OS_OPT_TIME_DLY,&err);
 					if(cnt>=500) // 5s
 					{
-						printf("none ping back .....\r\n");
+						printf("[LOG]none ping back .....\r\n");
 						
 						mqtt_state_set(0);
 
 						break;
 					}
 				}
-				printf("receive ping back .....\r\n");
+				printf("[LOG]receive ping back .....\r\n");
 				//mycheck_Queue();
 				mqtt_ping_state_set(0);  // 清空标志位
             }
@@ -1417,7 +1420,7 @@ void  SystemDatasBroadcast (void *p_arg)
 	CPU_STK_SIZE free,used;
 	(void)p_arg;
 
-	F407USART1_SendString("SystemDatasBroadcast run\r\n");
+	F407USART1_SendString("[TASK]SystemDatasBroadcast run\r\n");
 	delay_ms(500);  
 
 
@@ -1477,7 +1480,7 @@ void  SystemDatasBroadcast (void *p_arg)
 		if(time_delta <0)
 			time_delta+=3600;
 		sta = mqtt_state_get();
-		printf("\r\n&heart|fun:%x|fun2:%x|netsta:%d|running time:{(max %d) %d}&\r\n\r\n", function_f,function_f2, sta, max_work_length, time_delta);
+		printf("[BEAT]fun:%x|fun2:%x|netsta:%d|running time:{(max %d) %d}\r\n", function_f,function_f2, sta, max_work_length, time_delta);
 		#if EN_log_sd
 		if(sd_ready_flag ==0xAA)
 			mf_sync();

@@ -32,7 +32,7 @@ u8 mf_close(void)
 {
 	sd_ready_flag =0;  // 关闭标志位
 	delay_ms(10);
-	OS_ERR err;
+	//OS_ERR err;
 	CPU_SR_ALLOC();
 	OS_CRITICAL_ENTER();	//进入临界区
 	f_close(file);
@@ -43,7 +43,7 @@ u8 mf_close(void)
 //返回值:执行结果
 u8 mf_sync(void)
 {
-	OS_ERR err;
+	//OS_ERR err;
 	printf("*******************syn log****************\r\n");
 	CPU_SR_ALLOC();
 	OS_CRITICAL_ENTER();	//进入临界区
@@ -124,7 +124,7 @@ u8 mf_opendir(u8* path)
  * @param {type} 
  * @return {type} 
  */
-u8 mf_check_dir(u8* path)
+void mf_check_dir(u8* path)
 {
 	if(mf_opendir(path)!=FR_OK)
 	{
@@ -640,7 +640,8 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode)
 
 	//u16 id_in_flash; // #special
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
-	printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+	//printf("[INFO]STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+	printf("[INFO]STMFLASH_Read|pic_id=%d\r\n",eerom.id_in_flash);
 	//eerom.id_in_flash = STMFLASH_Read_Num(FLASH_SAVE_ADDR); // ##special
 	//id_in_flash = STMFLASH_Read_Num(FLASH_SAVE_ADDR); // ##special
 	srcdir = (DIR *)mymalloc(SRAMIN, sizeof(DIR)); // 申请内存
@@ -703,10 +704,10 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode)
                         strcat((char *)dstpathname, (const char *)"/"); // 目标路径加斜杠
                         strcat((char *)srcpathname, (const char *)fn);  // 源路径加文件名
                         //sprintf((char *)fn_t, "IMAG%05d.JPG", id_in_flash); 
-						sprintf((char *)fn_t, "IMAG%05d.JPG", eerom.id_in_flash); 
+						sprintf((char *)fn_t, "IMAG%04d.JPG", eerom.id_in_flash); 
 						strcat((char *)dstpathname, (const char *)fn_t);  // 目标路径加文件名
 
-                        printf("\r\n*copy file %s to %s\r\n", srcpathname,
+                        printf("[INFO]copy file \"%s\" to \"%s\"\r\n", srcpathname,
                                dstpathname);                       // 拷贝文件
                         mf_copy(srcpathname, dstpathname, fwmode); // 复制文件
 						
@@ -714,11 +715,12 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode)
 						eerom.id_in_flash++;						
 						//STMFLASH_Write_Num(FLASH_SAVE_ADDR, eerom.id_in_flash);
 						STMFLASH_Write(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
-						printf("*info:STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+						//printf("[INFO]STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+						printf("[INFO]STMFLASH_Write|pic_id=%d\r\n",eerom.id_in_flash);
 						mf_unlink(srcpathname);					   // 删除文件
 						
 						cnt++;
-						printf("*rm %s,cnt=%d\r\n",srcpathname,cnt);
+						printf("[INFO]rm \"%s\",cnt=%d\r\n",srcpathname,cnt);
 						
                     }
                     srcpathname[srcpathlen] = 0; // 加入结束符
@@ -799,8 +801,8 @@ u8 sensordata_write(u8 *pdst, u8 *data)
 u8 sensordata_send(u8 *psrc)
 {
     u8 res;
-    u16 br = 0;
-    u16 bw = 0;
+    //u16 br = 0;
+    //u16 bw = 0;
     FIL *fsrc = 0;
     u8 *fbuf = 0;
     fsrc = (FIL *)mymalloc(SRAMIN, sizeof(FIL)); 

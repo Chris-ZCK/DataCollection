@@ -127,6 +127,8 @@ extern struct flash_package eerom;
 #define QUEERY_BATTERY_ON 0
 // 串口控制
 #define UART_CMD_MODE 1
+// 串口EC25中间信息
+#define EC25_LOG_PRINT 0
 // 获取电池数据据版本：1 老版本 2 新版本
 #define BATTERY_VERSION   2
 // 1 老版本

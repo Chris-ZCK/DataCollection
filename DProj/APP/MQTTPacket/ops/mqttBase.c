@@ -39,12 +39,13 @@ void mqtt_UID_set(void)
 	sprintf(MY_TOPIC_MSGUP  , "%08X%04X/msgup",   mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
 	sprintf(MY_TOPIC_CONFIG , "%08X%04X/config",  mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
 	
-//	printf("*MQTT:Clinet ID       :%s\r\n",CLIENTID);
-//	printf("*MQTT:MY_TOPIC_PICDOWN:%s\r\n",MY_TOPIC_PICDOWN);
-//	printf("*MQTT:MY_TOPIC_PICUP  :%s\r\n",MY_TOPIC_PICUP);
-//	printf("*MQTT:MY_TOPIC_MSGDOWN:%s\r\n",MY_TOPIC_MSGDOWN);
-//	printf("*MQTT:MY_TOPIC_MSGUP  :%s\r\n",MY_TOPIC_MSGUP);
-//	printf("*MQTT:MY_TOPIC_CONFIG :%s\r\n",MY_TOPIC_CONFIG);
+	printf("[INFO]MQTT UID:\r\n");
+	printf("*MQTT:Clinet ID       :%s\r\n",CLIENTID);
+	printf("*MQTT:MY_TOPIC_PICDOWN:%s\r\n",MY_TOPIC_PICDOWN);
+	printf("*MQTT:MY_TOPIC_PICUP  :%s\r\n",MY_TOPIC_PICUP);
+	printf("*MQTT:MY_TOPIC_MSGDOWN:%s\r\n",MY_TOPIC_MSGDOWN);
+	printf("*MQTT:MY_TOPIC_MSGUP  :%s\r\n",MY_TOPIC_MSGUP);
+	printf("*MQTT:MY_TOPIC_CONFIG :%s\r\n",MY_TOPIC_CONFIG);
 }
 
 

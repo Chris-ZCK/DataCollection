@@ -72,10 +72,10 @@ void Cam_Crtl_Init(void)
 void USB_Photograph(void)
 {
 	USB_TP = 1;
-	printf("拍摄...\r\n");
+	printf("[LOG]拍摄...\r\n");
 	delay_ms(1000);
 	USB_TP = 0;
-	printf("ing .....\r\n");
+	printf("[LOG]ing .....\r\n");
 }
 
 
@@ -91,12 +91,12 @@ void USB_Connecting(u8 ctrl)
 	if (ctrl == 1)
 	{
 		USB_CNT = 1;
-		printf("连接相机...\r\n");
+		printf("[LOG]连接相机...\r\n");
 	}
 	else
 	{
 		USB_CNT = 0;
-		printf("恢复相机...\r\n");
+		printf("[LOG]恢复相机...\r\n");
 	}
 }
 
@@ -131,7 +131,7 @@ void USB_CONNECT_OFF()
  */
 void openUSB(void)
 {
-	printf("*openUSB...\r\n");
+	printf("[LOG]openUSB...\r\n");
 	USB_Connecting(1);  // 首先通知相机处于连接模式
 	USB_CONNECT_ON();  // 打开USB电源
 }
@@ -144,7 +144,7 @@ void openUSB(void)
  */
 void closeUSB(void)
 {
-	printf("*closeUSB...\r\n");
+	printf("[LOG]closeUSB...\r\n");
 	// delay_ms(10);
 	USB_Connecting(0);
 	// delay_ms(100);
