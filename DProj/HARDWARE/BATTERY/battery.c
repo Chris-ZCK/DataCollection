@@ -1,7 +1,7 @@
 /*
  * @Author: Howell
  * @Date: 2020-08-10 17:34:17
- * @LastEditTime: 2020-08-17 05:33:28
+ * @LastEditTime: 2020-08-17 06:45:43
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \USERd:\Documents\GitProject\DataCollection\DProj\HARDWARE\BATTERY\battery.c
@@ -38,16 +38,17 @@ void SendBatteryInstruct(u8 *instruct, u8 len)
 {
 	u8 i;
 	#if EN_LOG_PRINT>2 
-	//printf("SendBatteryInstruct[%d]:", len);  // 测试时候使用
+	printf("[LOG]SendBatteryInstruct[%d]:", len);  // 测试时候使用
 	#endif
 	for(i=0;i<len;i++)
 	{
 		F407USART2_SendByte(instruct[i]);
 		//#if EN_LOG_PRINT>2 
-		//printf("%02X ",instruct[i]);  // 测试时候使用
+		printf("%02X ",instruct[i]);  // 测试时候使用
 		//#endif
 	}
-	printf("[LOG]SendBatteryInstruct\r\n");
+	printf("\r\n");
+	//printf("[LOG]SendBatteryInstruct\r\n");
 }
 
 int String2NumHex(u8 *str, int length)
@@ -156,6 +157,17 @@ u8 battery_data_anay(void)
 	
 }
 #else  // 新版本电池
+
+
+/**
+ * @description: 特定函数，将2位16进制转为10进制
+ * @param {type} 
+ * @return {type} 
+ */
+u16 MyHex2Dec2(u8* addr, u8 n)
+{
+	return addr[0]*256+addr[n-1];
+}
 // * example:
 // * send: DD 0D 03 03 01 00 15 F8 77
 // * recv: DD 0D 03 41 13 06 55 20 01 00 00 16 00 0A 0C AC 0C AF 0C B0 00 33 0C AC 11 B8 77
@@ -169,12 +181,12 @@ u8 battery_data_anay(void)
 	SendBatteryInstruct(instructBatteryInfo,9);  // 发送指令
 	delay_ms(1000);
 	
-	printf("[LOG]Get Battery datas\r\n");
+	printf("[LOG]Battery datas:");
 	while(F407USART2_buffRead(&res))  // 寻找帧头
 	{
 		if(res==0xDD)
 		{
-			//printf("%02X ",res);
+			printf("%02X ",res);
 			battery.info[len++]=res;
 			break;
 		}
@@ -182,11 +194,11 @@ u8 battery_data_anay(void)
 
 	while(F407USART2_buffRead(&res) && (t++)<200)  // 寻找帧尾
 	{
-		//printf("%02X ",res);
+		printf("%02X ",res);
 		battery.info[len++]=res;
 		if(res==0x77)
 		{
-			//printf("\r\n");
+			printf("\r\n");
 			battery.info[len]=0;
 			break;
 		}	
@@ -225,21 +237,21 @@ u8 battery_data_anay(void)
 					case 0x0331:
 							battery.SOH=-9999;  // 无此参数
 							//printf("SOH=%d\r\n",battery.SOH);
-							battery.total_voltage=String2NumHex(battery.info+12,2)*10;
+							battery.total_voltage=MyHex2Dec2(battery.info+12,2)*10;
 							printf("[INFO]total_voltage=%dmV\r\n",battery.total_voltage);
 							
-							battery.charge_current=String2NumHex(battery.info+14,2)*10;
+							battery.charge_current=MyHex2Dec2(battery.info+14,2)*10;
 							printf("[INFO]charge_current=%dmA\r\n",battery.charge_current);
-							battery.discharge_current=String2NumHex(battery.info+14,2)*10;
+							battery.discharge_current=MyHex2Dec2(battery.info+14,2)*10;
 							printf("[INFO]discharge_current=%dmA\r\n",battery.discharge_current);
 
 							battery.cell_temperature=-9999;
 							//printf("[WARNING]cell_temperature=%dC\r\n",battery.cell_temperature);
 							
-							battery.level=String2NumHex(battery.info+18,2);
+							battery.level=MyHex2Dec2(battery.info+18,2);
 							printf("[INFO]level=%d/10000\r\n",battery.level);
-							battery.remain_capacity=String2NumHex(battery.info+16,2);
-							printf("[INFO]remain_capacity=%dmAh\r\n",battery.remain_capacity);
+							battery.remain_capacity=MyHex2Dec2(battery.info+16,2);
+							printf("[INFO]remain_capacvity=%dmAh\r\n",battery.remain_capacity);
 							battery.max_capacity=-9999;
 							//printf("[WARNING]max_capacity=%d\r\n",battery.max_capacity);
 						

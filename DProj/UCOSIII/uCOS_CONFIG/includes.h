@@ -112,7 +112,7 @@ extern struct flash_package eerom;
 // 调试模式
 #define DEBUG_MODE    1
 // 睡眠模式
-#define SLEEP_MODE    0 
+#define SLEEP_MODE    1
 // USB开关
 #define USB_MODE      1
 // 传感器开关
@@ -124,7 +124,7 @@ extern struct flash_package eerom;
 // 是否询问GPS数据
 #define QUEERY_GPS_ON 1
 // 是否询问电池数据
-#define QUEERY_BATTERY_ON 0
+#define QUEERY_BATTERY_ON 1
 // 串口控制
 #define UART_CMD_MODE 1
 // 串口EC25中间信息
@@ -146,7 +146,7 @@ extern struct flash_package eerom;
 //////////////////////////////
 //////////////////////////////
 // 重要系统参数
-#define TEST_PARA 0
+#define TEST_PARA 1
 
 #if TEST_PARA
 // Sys cycle, unit:s
@@ -157,7 +157,7 @@ extern struct flash_package eerom;
 // send data, unit:s
 #define TASK_S_D_CNT    CYCLE_TIME*2
 // take photo, unit:s
-#define TASK_T_P_CNT		600
+#define TASK_T_P_CNT		CYCLE_TIME*10
 
 // 单位1mA
 #define TD_C_C_VAL		500
@@ -165,7 +165,7 @@ extern struct flash_package eerom;
 #define TD_B_V_VAL		12000
 
 #define TD_C_H_S		0
-#define TD_C_H_E		8
+#define TD_C_H_E		24
 
 // 待机时间
 #define STANDBY_TIME	30

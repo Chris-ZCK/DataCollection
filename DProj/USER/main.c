@@ -209,7 +209,7 @@ void system_init(void)
 	STMFLASH_Write(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);	// 将初始化参数写入寄存器
 	while(1);
 	#else
-	printf("[INFO]cycle data:%d,%d,%d,%d,%x\r\n",cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
+	//printf("[INFO]cycle data:%d,%d,%d,%d,%x\r\n",cycle.time_stamp,cycle.picture_id,cycle.task_cnt,cycle.watch_cnt,cycle.function);
 	#endif
 	
 	// 处理休眠机制
