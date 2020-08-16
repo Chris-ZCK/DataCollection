@@ -410,6 +410,7 @@ void system_init(void)
  * 0      分析成功
  * 100    不需要更新
  * others 数据异常
+ * 例子：600|10800|3600|3600|12500|800|8|15|1200
  */
 u8 analyze_config_para(char *buf, u16 * val)
 {
@@ -1047,13 +1048,13 @@ u8 check_config(u8 *load, u16 len)
 		}
 		else
 		{
-			printf("*!warming:check_config|crc_cal error!crc_cal=%d,crc_rcv=%d\r\n",crc_cal,crc_rcv);
+			printf("[WARNING]check_config|crc_cal error!crc_cal=%d,crc_rcv=%d\r\n",crc_cal,crc_rcv);
 			res=101;
 		}
 	}
 	else
 	{
-		printf("*!warming:check_config|msg_len error,msg_len=%d,len=%d\r\n",msg_len,len);
+		printf("[WARNING]check_config|msg_len error,msg_len=%d,len=%d\r\n",msg_len,len);
 		res=102;
 	}	
 	return res;
@@ -1108,6 +1109,14 @@ u8 check_sever_config(u8 *load, u16 len)
 
 //	InitQueue(&Q_stage);  // 初始化队列 
 //	InitQueue(&Q_resent);  // 初始化队列
+/**
+ * @description: 检查服务器反馈的消息
+ * a5
+ * 		96 反馈的校验码
+ * 		90 
+ * @param {type} 
+ * @return {type} 
+ */
 void check_response(u8* load, int len)
 {
 	u8 res;
@@ -1117,7 +1126,7 @@ void check_response(u8* load, int len)
 	QElemType elem;
 	if(load[0]==0xa5)
 	{
-		if(load[1]==0x96)
+		if(load[1]==0x96)  // 反馈的校验码
 		{
 			uid = (load[2]<<24) +  (load[3]<<16) + (load[4]<<8) +  load[5];
 			// printf(">>>>>>>>>>>>>>>>>>>>>>>>R*UID:%0X\r\n",uid);
@@ -1152,7 +1161,6 @@ void check_response(u8* load, int len)
 		}
 		else if(load[1]==0x90)  // 通过判断第二个字节来识别控制指令
 		{
-			u8 res;
 			printf("[LOG]check_config\r\n");
 			res=check_config(load,len);
 			if(res==0) // 成功存储
