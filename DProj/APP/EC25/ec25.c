@@ -142,8 +142,8 @@ EC25_ERR ec25_tcp_Conditon_Normal(void)
 	F407USART3_SendString("AT+IFC=2,2\r\n");
 	F407USART1_SendString("[LOG]AT+IFC=2,2\r\n");
 	WaitString_OKflag(3000);
-	//config gps
 	
+	//config gps
 	waitString_set("OK", 2);
 	F407USART3_SendString("AT+QGPS=1,1\r\n");
 	F407USART1_SendString("[LOG]AT+QGPS=1,1\r\n");
@@ -813,7 +813,6 @@ int ec25_QueeryGPS(void)
 {
 	uint8_t *buff;
 	uint8_t res, i;
-	// u16 ec25_data_csq;
 	F407USART1_SendString("[LOG]ec25_QueeryGPS\r\n");
 
 	IWDG_Feed();
@@ -825,11 +824,10 @@ int ec25_QueeryGPS(void)
 	if (res)
 	{
 		printf("[LOG]Success Turn on GNSS\r\n");
-		
 	}
 	else
 	{
-		printf("[LOG]Try Turn on GNSS\r\n");
+		printf("[WARNING]Try Turn on GNSS\r\n");
 	}
 	
 	waitString_set("+QGPS: 1", 8);
@@ -902,7 +900,7 @@ int ec25_QueeryGPS(void)
 		}
 		else
 		{
-			printf("[LOG]Try:ec25_QueeryGPS cnt:(max 8)%d\r\n",i);
+			printf("[LOG]Try:ec25_QueeryGPS cnt:(max 5)%d\r\n",i);
 			delay_ms(100);
 		}
 		delay_ms(1000);
@@ -916,10 +914,7 @@ int ec25_QueeryGPS(void)
 	
 	if (res)
 	{
-		/*
 		EC25_GNGGA_Analysis(&gpsx, buff);
-		*/
-		//ec25_data_csq = stringtoNum((char *)buff);
 		printf("[LOG]Qurry EC25 successful\r\n");
 		delay_ms(100);
 		return 1;

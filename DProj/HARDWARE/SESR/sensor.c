@@ -36,6 +36,7 @@ void Data_Packing_sens(char *msg)
 		ec25_csq = ec25_QueeryCSQ();
 		#if QUEERY_GPS_ON
 		// 判断是否正常获取GPS数据
+		gpsx.gpssta = ec25_QueeryGPS();
 		if(gpsx.gpssta!=0) 
 		{
 			if(gpsx.nshemi == 'N')

@@ -653,7 +653,7 @@ void  SysWatchTask(void *pdata)
 {
 	OS_ERR err;
 	u16 t;
-	printf("[Task]SysWatchTask running!!!!!\r\n");
+	printf("[TASK]SysWatchTask run\r\n");
 	delay_ms(500);
 	while(1)
 	{
@@ -810,7 +810,7 @@ u8 check_uart_commamd(u8*buf)
 {
 	//u8 command;
 	u8 res=0;
-	printf("[INFO]$check_uart_commamd:");
+	printf("[INFO]check_uart_commamd:\r\n");
 	if(buf[0]=='{' && buf[2]==':' && buf[4]=='}')
 	{
 		switch(buf[1])
@@ -955,7 +955,7 @@ static void MainTask(void *p_arg) // test fun
 				IWDG_Feed();				
 				act_get_data();
 				function_f&=(~0x01);
-				printf("*finish act_get_data , fun:%x~~~~~\r\n",function_f);
+				printf("[INFO]finish act_get_data , fun:%x~~~~~\r\n",function_f);
 			}
 			else if(function_f&0x02 )  // 拍照
 			{
@@ -963,7 +963,7 @@ static void MainTask(void *p_arg) // test fun
 				act_take_photo();
 				delay_ms(1000);
 				function_f&=(~0x02);
-				printf("*fun:%x\r\n",function_f);
+				printf("[LOG]finish act_take_photo, fun:%x\r\n",function_f);
 			}
 			else if(function_f&0x04 )  // 转存
 			{
@@ -971,7 +971,7 @@ static void MainTask(void *p_arg) // test fun
 				act_scan_camera();
 				delay_ms(1000);
 				function_f&=(~0x04);
-				printf("*finish act_scan_camera, fun:%x~~~~~\r\n",function_f);
+				printf("[LOG]finish act_scan_camera, fun:%x~~~~~\r\n",function_f);
 			}			
 		}
 		// 联网成功方可执行
@@ -981,12 +981,12 @@ static void MainTask(void *p_arg) // test fun
 			{
 				IWDG_Feed();
 				act_send_data();
-				printf("*finish act_send_data, fun:%x~~~~~\r\n",function_f);
+				printf("[LOG]finish act_send_data, fun:%x~~~~~\r\n",function_f);
 				delay_ms(1000);
 				mf_send_log();
 				delay_ms(1000);
 				function_f&=(~0x10); 
-				printf("*finish act_send_log, fun:%x~~~~~\r\n",function_f);
+				printf("[LOG]finish act_send_log, fun:%x~~~~~\r\n",function_f);
 			}
 			
 			else if(function_f&0x20)  // 发送图片
@@ -995,7 +995,7 @@ static void MainTask(void *p_arg) // test fun
 				act_send_picture();
 				delay_ms(1000);
 				function_f&=(~0x20); 
-				printf("*finish act_send_picture, fun:%x~~~~~\r\n",function_f);
+				printf("[LOG]finish act_send_picture, fun:%x~~~~~\r\n",function_f);
 			}
 		}
         OSTimeDly(10, OS_OPT_TIME_DLY, &err);
@@ -1089,19 +1089,19 @@ u8 check_sever_config(u8 *load, u16 len)
 		{
 			res=check_uart_commamd(load+10);
 			if(res==0)
-				printf("*info:check_sever_config|succeed receive command\r\n");
+				printf("[INFO]check_sever_config|succeed receive command\r\n");
 			else
-				printf("*!warming:check_sever_config|parameter error\r\n");
+				printf("[WARNING]check_sever_config|parameter error\r\n");
 		}
 		else
 		{
-			printf("*!warming:check_sever_config|crc_cal error!crc_cal=%d,crc_rcv=%d\r\n",crc_cal,crc_rcv);
+			printf("[WARNING]check_sever_config|crc_cal error!crc_cal=%d,crc_rcv=%d\r\n",crc_cal,crc_rcv);
 			res=101;
 		}
 	}
 	else
 	{
-		printf("*!warming:check_sever_config|msg_len error,msg_len=%d,len=%d\r\n",msg_len,len);
+		printf("[WARNING]check_sever_config|msg_len error,msg_len=%d,len=%d\r\n",msg_len,len);
 		res=102;
 	}
 	return res;

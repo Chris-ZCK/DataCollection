@@ -139,5 +139,5 @@ void EC25_GNGGA_Analysis(nmea_msg *gpsx,u8 *buf)
 	if(posx!=0XFF)gpsx->altitude=NMEA_Str2num(p1+posx,&dx);  
 	gpsx->gpssta = 1;											// 表示获取到数据
 	
-	printf("*gps|sta:%d|long:%d%c|lat:%d%c|alt:%d\r\n", gpsx->gpssta, gpsx->latitude, gpsx->nshemi, gpsx->longitude, gpsx->ewhemi,gpsx->altitude);
+	printf("[INFO]gps|sta:%d|long:%d%c|lat:%d%c|alt:%d\r\n", gpsx->gpssta, gpsx->latitude, gpsx->nshemi, gpsx->longitude, gpsx->ewhemi,gpsx->altitude);
 }
