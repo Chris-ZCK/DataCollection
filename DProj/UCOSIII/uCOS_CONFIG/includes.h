@@ -105,7 +105,7 @@ extern vu16 ec25_on_flag;
 extern struct cycle_package cycle;
 extern struct flash_package eerom;
 // ec25 flag，1：use HCTV; 0:use normal network
-#define In_Condition_HCTV 0
+#define In_Condition_HCTV 1
 
 
 // global switch
@@ -122,7 +122,7 @@ extern struct flash_package eerom;
 // 按键控制测试
 #define KEY_SCAN_ON 0
 // 是否询问GPS数据
-#define QUEERY_GPS_ON 0
+#define QUEERY_GPS_ON 1
 // 是否询问电池数据
 #define QUEERY_BATTERY_ON 0
 // 串口控制
@@ -146,7 +146,7 @@ extern struct flash_package eerom;
 //////////////////////////////
 //////////////////////////////
 // 重要系统参数
-#define TEST_PARA 1
+#define TEST_PARA 0
 
 #if TEST_PARA
 // Sys cycle, unit:s
@@ -172,14 +172,14 @@ extern struct flash_package eerom;
 #define MAX_RUN_TIME	1200
 #else
 // Sys cycle, unit:s
-#define CYCLE_TIME 		1800
+#define CYCLE_TIME 		600
 
 // store photo, unit:s
-#define TASK_S_P_CNT	3600
+#define TASK_S_P_CNT	CYCLE_TIME*3
 // send data, unit:s
-#define TASK_S_D_CNT    3600
+#define TASK_S_D_CNT    CYCLE_TIME*3
 // take photo, unit:s
-#define TASK_T_P_CNT	14400
+#define TASK_T_P_CNT	CYCLE_TIME*12
 
 // 单位1mA
 #define TD_C_C_VAL		500
@@ -187,7 +187,7 @@ extern struct flash_package eerom;
 #define TD_B_V_VAL		12000
 
 #define TD_C_H_S		0
-#define TD_C_H_E		8
+#define TD_C_H_E		23
 
 // 待机时间
 #define STANDBY_TIME	30

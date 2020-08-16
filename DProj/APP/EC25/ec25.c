@@ -211,7 +211,7 @@ EC25_ERR ec25_Act_PDP_Condition(void)
 			printf("[LOG]Register on CS domain service\r\n");
 			break;
 		}
-		else if (i > 20)
+		else if (i > 10)
 		{
 			printf("[WARNING]Failed to register on CS domain service\r\n");
 			return EC25_ERR_CREG;
