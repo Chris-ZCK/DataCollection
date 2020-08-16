@@ -11,14 +11,14 @@
 #include "sys.h"
 
 typedef struct{
-	u16 SOH;  // 电池健康状态
-    float total_voltage;  // 总电压
-    float charge_current;  // 充电电流
-	float discharge_current;  // 放电电流
-    int cell_temperature;  // 电池温度
-	int level;  // 电池容量
-	int max_capacity;  // 电池容量
-	int remain_capacity;  // 当前电量
+	int SOH;  // 电池健康状态
+    int total_voltage;  // 总电压,单位mv
+    int charge_current;  // 充电电流，单位ma
+	int discharge_current;  // 放电电流,单位ma
+    int cell_temperature;  // 电池温度,单位摄氏度
+	int level;  // 电池容量，单位万分之
+	int max_capacity;  // 电池容量，单位mAh
+	int remain_capacity;  // 当前电量，单位mAh
 	u8 info[150];
 } Battery_stats;
 // local

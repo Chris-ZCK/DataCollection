@@ -110,16 +110,16 @@ void Data_Packing_sens(char *msg)
 	battery.max_capacity= -9999;
 	printf("[WARNING]Battey is not work\r\n");
 	#endif
-	sprintf(tempdata,"|bv/%s/%d",battery.info,(int)(battery.total_voltage*2));
+	sprintf(tempdata,"|bv/%s/%d",battery.info,(int)(battery.total_voltage));
 	strcat(msg,tempdata);
 
-	sprintf(tempdata,"|bc//%d",(int)(battery.charge_current*10));
+	sprintf(tempdata,"|bc//%d",(int)(battery.charge_current));
 	strcat(msg,tempdata);
 
-	sprintf(tempdata,"|bd//%d",(int)(battery.discharge_current*10));
+	sprintf(tempdata,"|bd//%d",(int)(battery.discharge_current));
 	strcat(msg,tempdata);
 
-	sprintf(tempdata,"|bt//%d",battery.cell_temperature-40);
+	sprintf(tempdata,"|bt//%d",battery.cell_temperature);
 	strcat(msg,tempdata);
 
 	sprintf(tempdata,"|bl//%d",battery.level);

@@ -116,14 +116,15 @@ vu16 max_work_length = MAX_RUN_TIME;
  * @return {type}
   */
 void system_init(void)
+	
 {
 	u8 res;
 	u8  m_buf[100];
 	u16 m_value[9];
-	// local variable
+	#if SLEEP_MODE
 	u32 now_time;
 	int time_delta;
-
+	#endif
 	// global various
 	// watchdog_f=0;
 	function_f = 0;  // 任务执行标志清零
@@ -345,31 +346,32 @@ void system_init(void)
 	
 	if(cycle.task_cnt%upload_frequency==0 || key_on_flag)  // 发送数据
 	{
-		u8 i=0;
+		
 		printf("[LOG]try to send data\r\n");
 		
 		#if QUEERY_BATTERY_ON
-		while(i++<5 && battery_data_get()==0)
 		{
-			printf("[WARNING]try to get battery data, cnt:{(Max:5) %d}\r\n",i);
-		}
-		if((battery.charge_current)*10 >=current_fuse_threshold  || (battery.total_voltage)*2 >=voltage_fuse_threshold)
-		{
-			ec25_on_flag=1;
-			printf("[INFO]battery ok|current:%d|total_voltage:%d|send data\r\n",(int)battery.charge_current*10,(int)battery.total_voltage*2);
-		}
-		else
-		{
-			printf("[WARNING]battery error,charge_current:{(T:%d)>%d},total_voltage:{(T:%d)>%d}\r\n",\
-			(int)current_fuse_threshold,(int)battery.charge_current*10,(int)voltage_fuse_threshold,(int)battery.total_voltage*2);
+			u8 i=0;
+			while(i++<5 && battery_data_get()==0)
+			{
+				printf("[WARNING]try to get battery data, cnt:{(Max:5) %d}\r\n",i);
+			}
+			if((battery.charge_current)*10 >=current_fuse_threshold  || (battery.total_voltage)*2 >=voltage_fuse_threshold)
+			{
+				ec25_on_flag=1;
+				printf("[INFO]battery ok|current:%d|total_voltage:%d|send data\r\n",(int)battery.charge_current*10,(int)battery.total_voltage*2);
+			}
+			else
+			{
+				printf("[WARNING]battery error,charge_current:{(T:%d)>%d},total_voltage:{(T:%d)>%d}\r\n",\
+				(int)current_fuse_threshold,(int)battery.charge_current*10,(int)voltage_fuse_threshold,(int)battery.total_voltage*2);
+			}
 		}
 		#else
-		
-		#if TEST_PARA
-		ec25_on_flag=1;
-		printf("[INFO][DEBUG]FORCE to open 4G\r\n");
-		#endif
-		
+		{
+			ec25_on_flag=1;
+			printf("[INFO][DEBUG]FORCE to open 4G\r\n");
+		}
 		#endif
 		calendar_get_time(&calendar);
 		if(calendar.hour>=hardwork_min && calendar.hour<=hardwork_max)

@@ -22,7 +22,7 @@ void I2C_bus_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 
 void I2C_bus_read(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 {       
-  u8 t;  
+//  u8 t;  
 
 //	for(t=0;t<cnt;t++)
 //	{
