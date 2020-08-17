@@ -77,8 +77,8 @@ void key_scan_fun(void)
 		case 0:
 			break;
 		case 1:
-			printf("key.c:key1_down\r\n");
-			key1_down = 1;
+			//printf("key.c:key1_down\r\n");
+			//key1_down = 1;
 			break;
 		case 2:
 			printf("key.c:key2_down\r\n");
