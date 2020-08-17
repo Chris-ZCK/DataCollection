@@ -129,10 +129,13 @@ extern struct flash_package eerom;
 #define UART_CMD_MODE 1
 // 串口EC25中间信息
 #define EC25_LOG_PRINT 0
-// 获取电池数据据版本：1 老版本 2 新版本
-#define BATTERY_VERSION   2
-// 1 老版本
-// 2 新版本
+
+// 使用485通讯
+#define BATTERY_485 0
+// 获取电池数据据版本：0 老版本 1 新版本
+#define BATTERY_NEW_VERSION   1
+// 0 老版本
+// 1 新版本
 // Global macro definition
 
 #define EN_LOG_PRINT  3
@@ -146,7 +149,7 @@ extern struct flash_package eerom;
 //////////////////////////////
 //////////////////////////////
 // 重要系统参数
-#define TEST_PARA 1
+#define TEST_PARA 0
 
 #if TEST_PARA
 // Sys cycle, unit:s

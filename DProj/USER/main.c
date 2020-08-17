@@ -400,6 +400,14 @@ void system_init(void)
 	//printf("-------------------------\r\n\r\n");
 	#endif
 	IWDG_Feed();//Î¹¹·
+	
+	// test battery
+	while(1)
+	{
+		battery_data_anay();
+		delay_ms(1000);
+		IWDG_Feed();//Î¹¹·
+	}
 }
 
 

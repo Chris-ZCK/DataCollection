@@ -4,7 +4,7 @@
 
 
 #if (F407USART2_RECEIVE_BUFF_ENABLE == 1)
-uint8_t F407USART2_buff[F407USART2_RECEIVE_BUFF_SIZE];  //UART3缓存区
+uint8_t F407USART2_buff[F407USART2_RECEIVE_BUFF_SIZE];  //UART2缓存区
 volatile uint16_t F407USART2_buffHead = 0; // 头指针
 volatile uint16_t F407USART2_buffEnd = 0;  // 尾指针
 volatile uint8_t F407USART2_buffOverFlag = 0;  // 覆盖标志
@@ -94,7 +94,7 @@ uint16_t F407USART2_buffLength(void)
 	return F407USART2_RECEIVE_BUFF_SIZE * F407USART2_buffOverFlag + F407USART2_buffEnd - F407USART2_buffHead;
 }
 #endif // F407USART2_RECEIVE_BUFF_ENABLE
-
+#if BATTERY_485
 void USART2_IRQHandler(void)
 {
 	static uint8_t data = 0;
@@ -113,6 +113,28 @@ void USART2_IRQHandler(void)
 		F407USART2_buffWrite(data);
 	}
 }
+#else
+void USART6_IRQHandler(void)
+{
+	static uint8_t data = 0;
+	static uint8_t step = 0;
+
+	//溢出错误，必须处理,否则会导致死机
+	if (0x0008 & USART6->SR)
+	{
+		data = USART6->DR;
+		step = 0;
+	}
+	else if (0x0020 & USART6->SR)
+	{
+		//读数据会自动清除中断标志位
+		data = USART6->DR;
+		F407USART2_buffWrite(data);
+	}
+}
+#endif
+
+#if BATTERY_485
 
 //初始化IO 串口3
 //pclk1:PCLK1时钟频率(Mhz)
@@ -161,7 +183,52 @@ void USART2_init(u32 bound)
 	
 	//USART2_RX_STA=0;				//清零 
 }
+#else
+void USART2_init(u32 bound)
+{
+	//GPIO端口设置
+	GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
 
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);  //使能GPIOC时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE); //使能USART6时钟
+
+	//串口1对应引脚复用映射
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);  
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6); 
+
+	//USART1端口配置
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7; //GPIOC6与GPIOC7
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;			//复用功能
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;		//速度50MHz
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;			//推挽复用输出
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;			//上拉
+	GPIO_Init(GPIOC, &GPIO_InitStructure);					//初始化PC6，PC7
+
+	//USART1 初始化设置
+	USART_InitStructure.USART_BaudRate = bound;										//波特率设置
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;						//字长为8位数据格式
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;							//一个停止位
+	USART_InitStructure.USART_Parity = USART_Parity_No;								//无奇偶校验位
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; //无硬件数据流控制
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;					//收发模式
+	USART_Init(USART6, &USART_InitStructure);										//初始化串口1
+
+	USART_Cmd(USART6, ENABLE); //使能串口6
+	USART_ClearFlag(USART6, USART_FLAG_TC);
+
+	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE); //开启相关中断
+	//Usart1 NVIC 配置
+	NVIC_InitStructure.NVIC_IRQChannel = USART6_IRQn;		  // 串口1中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级1
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		  // 子优先级1
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
+	NVIC_Init(&NVIC_InitStructure);							  // 根据指定的参数初始化VIC寄存器、
+}
+#endif
+
+#if BATTERY_485
 /**
  * @description: 向串口2发送一个字节数据
  * @param uint8_t Data
@@ -173,7 +240,14 @@ void F407USART2_SendByte(uint8_t Data)
 		;
 	USART_SendData(USART2, Data);
 }
-
+#else
+void F407USART2_SendByte(uint8_t Data)
+{
+	while (!(USART6->SR & USART_FLAG_TXE))
+		;
+	USART_SendData(USART6, Data);
+}
+#endif
 /**
  * @description: 向串口2发送指定长度的字节
  * @param uint8_t * Data 数据地址; uint16_t leng 数据局长度  

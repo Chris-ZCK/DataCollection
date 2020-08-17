@@ -78,20 +78,18 @@ int String2NumHex(u8 *str, int length)
 // 电池状态结构体
 Battery_stats battery;
 
-#if BATTERY_VERSION == 1 // 旧版本电池
+#if BATTERY_NEW_VERSION  // 旧版本电池
 u8 battery_data_anay(void)
 {
-	u8 t=0;
 	u8 len=0;	
 	u8 res=0;
 	// u8 buf[200];
 	
 	F407USART2_SendString("<15300420859E708F180>");
 	delay_ms(1000);
-	
-	t=0;
+
 	// 找到起始点
-	while(F407USART2_buffRead(&res) && (t++)<200)
+	while(F407USART2_buffRead(&res))
 	{
 		if(res=='<')
 		{
@@ -101,9 +99,8 @@ u8 battery_data_anay(void)
 			break;
 		}
 	}	
-	t=0;	
 	// 找到终点
-	while(F407USART2_buffRead(&res) && (t++)<200)
+	while(F407USART2_buffRead(&res))
 	{
 		//printf("%c",res);
 		battery.info[len]=res;
@@ -122,39 +119,38 @@ u8 battery_data_anay(void)
 		battery.info[len]=0;
 		
 		battery.SOH=String2NumHex(battery.info+22,2);
-		//printf("SOH=%d\r\n",battery.SOH);
-		battery.total_voltage=String2NumHex(battery.info+24,4);
-		//printf("total_voltage=%f\r\n",battery.total_voltage);
+		printf("SOH=%d\r\n",battery.SOH);
+		battery.total_voltage=String2NumHex(battery.info+24,4)*2;
+		printf("total_voltage=%d\r\n",battery.total_voltage);
 		
-		battery.charge_current=String2NumHex(battery.info+46,4);
-		//printf("charge_current=%d\r\n",battery.charge_current);
-		battery.discharge_current=String2NumHex(battery.info+50,4);
-		//printf("discharge_current=%d\r\n",battery.discharge_current);
+		battery.charge_current=String2NumHex(battery.info+46,4)*10;
+		printf("charge_current=%d\r\n",battery.charge_current);
+		battery.discharge_current=String2NumHex(battery.info+50,4)*10;
+		printf("discharge_current=%d\r\n",battery.discharge_current);
 
-		battery.cell_temperature=String2NumHex(battery.info+56,2);
-		//printf("cell_temperature=%d\r\n",battery.cell_temperature);
+		battery.cell_temperature=String2NumHex(battery.info+56,2)-40;
+		printf("cell_temperature=%d\r\n",battery.cell_temperature);
 		
 		battery.level=String2NumHex(battery.info+116,2);
-		//printf("level=%d\r\n",battery.level);
-		battery.remain_capacity=String2NumHex(battery.info+118,4);
-		//printf("remain_capacity=%d\r\n",battery.remain_capacity);
-		battery.max_capacity=String2NumHex(battery.info+122,4);
-		//printf("max_capacity=%d\r\n",battery.max_capacity);
+		printf("level=%d\r\n",battery.level);
+		battery.remain_capacity=String2NumHex(battery.info+118,4)*100;
+		printf("remain_capacity=%d\r\n",battery.remain_capacity);
+		battery.max_capacity=String2NumHex(battery.info+122,4)*100;
+		printf("max_capacity=%d\r\n",battery.max_capacity);
 		return 1;
 	}
 	else
 	{
-		battery.total_voltage = -9999.0/2;
-		battery.charge_current = -9999.0/10;
-		battery.discharge_current= -9999.0/10;
-		battery.cell_temperature= -9959;
+		battery.total_voltage = -9999;
+		battery.charge_current = -9999;
+		battery.discharge_current= -9999;
+		battery.cell_temperature= -9999;
 		battery.level = -9999;
 		battery.remain_capacity= -9999;
 		battery.max_capacity= -9999;
 		strcpy((char*)battery.info,"error");
 		return 0;
 	}
-	
 }
 #else  // 新版本电池
 
@@ -176,8 +172,7 @@ u8 battery_data_anay(void)
 	u8 t=0;
 	u8 len=0;	
 	u8 res=0;
-	// u8 buf[200];
-	
+
 	SendBatteryInstruct(instructBatteryInfo,9);  // 发送指令
 	delay_ms(1000);
 	
