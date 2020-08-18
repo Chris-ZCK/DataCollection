@@ -150,12 +150,14 @@ int32_t FluxMeasurement_get(void)
 {
 	u8 i=0;
 	uint32_t lus;
-	while(i++<3)
+	while(i++<5)
 	{
 		getFluxMeasurement(&lus);
-		if(lus>188000)
+		if(lus>588000)
 		{
 			max44009_initialize();
+			printf("[LOG]MAX44009 retry %d, init\r\n",i);
+			delay_ms(1000);
 			continue;
 		}
 		printf("[LOG]MAX44009 woking well, lux:%d\r\n", lus);

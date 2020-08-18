@@ -107,12 +107,12 @@ extern struct flash_package eerom;
 
 
 // ec25 flag，1：use HCTV; 0:use normal network
-#define In_Condition_HCTV 0
+#define In_Condition_HCTV 1
 // global switch
 // 调试模式
 #define DEBUG_MODE    1
 // 睡眠模式
-#define SLEEP_MODE    1
+#define SLEEP_MODE    0
 // USB开关
 #define USB_MODE      1
 // 传感器开关
@@ -131,11 +131,11 @@ extern struct flash_package eerom;
 #define EC25_LOG_PRINT 0
 
 // 使用485通讯
-#define BATTERY_485 0
-// 获取电池数据据版本：0 老版本 1 新版本
-#define BATTERY_NEW_VERSION   1
-// 0 老版本
-// 1 新版本
+#define BATTERY_485 1
+// 获取电池数据据版本：1 老版本 0 新版本
+#define BATTERY_OLD_VERSION   0
+// 1 老版本
+// 0 新版本
 // Global macro definition
 
 #define EN_LOG_PRINT  3
@@ -178,11 +178,11 @@ extern struct flash_package eerom;
 #define CYCLE_TIME 		600
 
 // store photo, unit:s
-#define TASK_S_P_CNT	CYCLE_TIME*3
+#define TASK_S_P_CNT	CYCLE_TIME*12
 // send data, unit:s
-#define TASK_S_D_CNT    CYCLE_TIME*3
+#define TASK_S_D_CNT    CYCLE_TIME*12
 // take photo, unit:s
-#define TASK_T_P_CNT	CYCLE_TIME*12
+#define TASK_T_P_CNT	CYCLE_TIME*36
 
 // 单位1mA
 #define TD_C_C_VAL		500

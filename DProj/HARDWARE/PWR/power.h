@@ -13,7 +13,7 @@
 // Power control Interface
 #define POWER_D 		PEout(9)   // 4G, active=1,default=0
 //------------------------------------
-#define POWER_LE        PEout(10)  // Output,active=1,default=0
+#define POWER_LE			PEout(10)  // Output,active=1,default=0
 #define POWER_OUT 		PEout(11)  // !5V out, active=1,default=1
 #define POWER_CAM 		PEout(12)  // !5V DC in, active=1,default=1
 

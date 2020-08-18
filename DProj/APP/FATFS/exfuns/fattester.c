@@ -405,7 +405,7 @@ u32 srt2integer_pro(u8 *str)
  * @return num of files
  * @note  max 20
  */
-#define MAX_TRANSFORM_SINGLE 3
+#define MAX_TRANSFORM_SINGLE 6
 u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
 {
 	#define MAX_PATHNAME_DEPTH 100 + 1 //最大目标文件路径+文件名深度
@@ -611,7 +611,7 @@ u8* get_src_dname(u8* dpfn)
 }
 
 
-#define MAX_COYP_SINGLE 3
+#define MAX_COYP_SINGLE 6
 // 文件夹复制
 // 将psrc文件夹,copy到pdst文件夹.
 // pdst:必须形如"X:"/"X:XX"/"X:XX/XX"之类的.而且要实现确认上一级文件夹存在

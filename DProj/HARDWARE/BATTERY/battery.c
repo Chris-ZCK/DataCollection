@@ -78,7 +78,7 @@ int String2NumHex(u8 *str, int length)
 // 电池状态结构体
 Battery_stats battery;
 
-#if BATTERY_NEW_VERSION  // 旧版本电池
+#if BATTERY_OLD_VERSION  // 旧版本电池
 u8 battery_data_anay(void)
 {
 	u8 len=0;	
