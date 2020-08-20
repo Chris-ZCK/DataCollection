@@ -112,7 +112,7 @@ extern struct flash_package eerom;
 // 调试模式
 #define DEBUG_MODE    1
 // 睡眠模式
-#define SLEEP_MODE    0
+#define SLEEP_MODE    1
 // USB开关
 #define USB_MODE      1
 // 传感器开关
