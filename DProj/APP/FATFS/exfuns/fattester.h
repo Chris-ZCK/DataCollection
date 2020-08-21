@@ -50,6 +50,8 @@ void mf_config_data_read_flash(u8 *fbuf);
 void mf_send_log(void);
 extern u8 sd_ready_flag;
 void mf_check_dir(u8* path);
+
+u8 WiFiSendFile(u8 *psrc);
 #endif
 
 

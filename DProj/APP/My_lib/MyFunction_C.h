@@ -1,3 +1,11 @@
+/*
+ * @Author: Howell
+ * @Date: 2020-08-14 21:16:53
+ * @LastEditTime: 2020-08-21 02:12:17
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \USERc:\Users\lihao\Documents\Git Projects\DataCollection\DProj\APP\My_lib\MyFunction_C.h
+ */
 #ifndef _MYFUNCTION_C_H_
 #define _MYFUNCTION_C_H_
 #include "sys.h"
@@ -37,4 +45,8 @@ uint8_t locate_character(char* str, char ch);
 u32 Frame_UID_get(void);
 unsigned short ModBusCRC(unsigned char *buf, unsigned int lenth);
 double get_time_cnt(void);
+
+void PrintProgressBarInit(void);
+void PrintProgressBar(u16 count, u16 total);
+void PrintProgressBarEnd(u16 count, u16 total);
 #endif

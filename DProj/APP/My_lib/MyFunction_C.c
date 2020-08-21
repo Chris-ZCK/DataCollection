@@ -1,5 +1,34 @@
 #include "MyFunction_C.h"
 #include "rng.h"
+
+
+/**
+ * @description: Print progress bar
+ * @param {type} 
+ * @return {type} 
+ */
+static u8 ratio_sta=0;
+void PrintProgressBarInit(void)
+{
+	ratio_sta = 0;
+	printf("[LOG]---[");
+}
+void PrintProgressBar(u16 count, u16 total)
+{
+	float ratio;
+	ratio = count*100.0/total;
+	if(ratio>=ratio_sta)
+	{
+		ratio_sta+=10;
+		printf("#");
+	}
+}
+void PrintProgressBarEnd(u16 count, u16 total)
+{
+	printf("],%d%---\r\n",count*100/total);
+}
+
+
 /*
 功能：计算字符串中有效字符长度
 参数：字符串首地址

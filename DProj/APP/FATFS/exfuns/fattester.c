@@ -6,8 +6,11 @@
 #include "ff.h"
 #include "string.h"
 #include "mqttApp.h"
-#include "stmflash.h"  // for pic id
-#include "iwdg.h" // watchdog
+#include "stmflash.h"  	// for pic id
+#include "iwdg.h"		// watchdog
+#include "M8266WIFI_ops.h"
+#include "MyFunction_C.h"
+
 //为磁盘注册工作区	 
 //path:磁盘路径，比如"0:"、"1:"
 //mt:0，不立即注册（稍后注册）；1，立即注册
@@ -911,106 +914,66 @@ void mf_send_log(void)
 	}
 	mf_log_init(); // 重新启动log记录
 }
-/*
-u8 sys_config_data_write(u8 *pdst, u8 *data)
+
+
+/**
+ * @description: Send files by WiFi.
+ * @param {type} 
+ * @return {type} 
+ */
+u8 WiFiSendFile(u8 *psrc)
 {
-    u8 res;
-	u16 br = 0;
-    u16 bw = 0;
-    FIL *fdst = 0;
-    fdst = (FIL *)mymalloc(SRAMIN, sizeof(FIL));
-    
-	IWDG_Feed();
-	
-	if (fdst == NULL)
-    {
-        res = 100;
-		printf("*!warming:sys_config_data_write|fail to mymalloc memery!\r\n");
-    }
-    else
-    {
-		res = f_open(fdst, (const TCHAR *)pdst, FA_WRITE | FA_CREATE_ALWAYS); //创建新文档
-        if (res == 0)
-        {
+	u8 res;
 
-			// put the point to the end
-			br = strlen((const char *)data);
-			bw = f_puts((const char *)data,fdst);
-			if (br!=bw)  // check if write ok
-			{
-				printf("*!warming:sys_config_data_write|fail to write sensor data to SD card!\r\n");
-				return 200;
-			}
-			else
-			{
-				printf("*log:sys_config_data_write|success write in %s\r\n",pdst);
-			}
+	FIL *fsrc = 0;
+	u8 *fbuf = 0;
+	u32 total = 0;
+	u32 count = 0;
 
-            f_close(fdst);
-        }
-		else
-		{
-			printf("*!warming:sys_config_data_write|fail to f_open %s\r\n",pdst);
-		}
-    }
-    myfree(SRAMIN, fdst);
-    return res;
-}
+	PrintProgressBarInit();
 
-u8 sys_config_data_read(u8 *psrc, u8 *fbuf)
-{
-    u8 res;
-    u16 br = 0;
-    u16 bw = 0;
-    FIL *fsrc = 0;
-    fsrc = (FIL *)mymalloc(SRAMIN, sizeof(FIL)); 
-    //fbuf = (u8 *)mymalloc(SRAMIN, 512);
-    
-	IWDG_Feed();
-	
+	fsrc = (FIL *)mymalloc(SRAMIN, sizeof(FIL));
+	fbuf = (u8 *)mymalloc(SRAMIN, 1024);
+
 	if (fsrc == NULL || fbuf == NULL)
-    {
-        res = 100;
-		printf("*!warming:sys_config_data_read|fail to mymalloc memery!\r\n");
-    }
-    else
-    {
-        res = f_open(fsrc, (const TCHAR *)psrc, FA_READ | FA_OPEN_EXISTING);
-        if (res == 0)
-        {
-			if(f_gets((TCHAR*)fbuf, 512, fsrc))
+	{
+		res = 100;
+		printf("[WARNING]sensordata_send|fail to mymalloc memery!\r\n");
+	}
+	else
+	{
+		res = f_open(fsrc, (const TCHAR *)psrc, FA_READ | FA_OPEN_EXISTING);
+
+		if (res == 0)
+		{
+			total = f_size(fsrc);
+			while (res == 0)
 			{
-				printf("sys_config_data_read:{%s}#\r\n#\r\n",(char*)fbuf);
+				res = f_read(fsrc, fbuf, 1024, (UINT *)&br);
+				// printf("res=%d,br=%d,", res, br);
+				if (res || br == 0)
+				{
+					break;
+				}
+				WiFiSendPacketBuffer(fbuf, br);
+				count += br;
+				// printf("total/count=%d/%d\r\n", total, count);
+				PrintProgressBar(count, total);
 			}
-			else
-			{
-				res = 200;  // 错误
-				printf("sys_config_data_read:none data\r\n");
-				
-			}
-            f_close(fsrc);
-        }
+			f_close(fsrc);
+		}
 		else
 		{
-			printf("*!warming:sys_config_data_read|fail to f_open %s\r\n",psrc);
+			printf("[WARNING]sensordata_send|fail to f_open %s\r\n", psrc);
 		}
-    }
-    myfree(SRAMIN, fsrc); 
-    myfree(SRAMIN, fbuf);
-	printf("*log:sensordata_send res=%d\r\n",res);
-    return res;
+	}
+	myfree(SRAMIN, fsrc);
+	myfree(SRAMIN, fbuf);
+	
+	PrintProgressBarEnd(count,total);
+	printf("[LOG]sensordata_send res=%d\r\n", res);
+	return res;
 }
-#define	 CONFIG_DATA_PATH 	"0:config.dat"
-u8 mf_config_data_write(u8 *data)
-{
-	return sys_config_data_write((u8*)CONFIG_DATA_PATH, data);
-}
-
-u8 mf_config_data_read(u8 *fbuf)
-{
-	return sys_config_data_read((u8*)CONFIG_DATA_PATH, fbuf);
-}
-*/
 
 void mf_config_data_write_flash(u8 *data)
 {

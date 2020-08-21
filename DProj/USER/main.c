@@ -110,6 +110,37 @@ vu16 hardwork_max = TD_C_H_E;
 vu16 max_work_length = MAX_RUN_TIME;
 ////////////////////////////////////////////
 
+void network_init(void)
+{
+	u8 i=0;
+	u8 retry=0;
+	
+	printf("TEST_CONNECTION_TYPE = %d(0-UDP, 1-Client,2-Server)\r\n",TEST_CONNECTION_TYPE); //连接类型
+	printf("TEST_LOCAL_PORT      = %d(0:updated random port)\r\n",TEST_LOCAL_PORT);			//本地端口号
+	printf("TEST_REMOTE_IP_ADDR  = %s\r\n",TEST_REMOTE_IP_ADDR);//目标IP
+	printf("TEST_REMOTE_PORT     = %d\r\n",TEST_REMOTE_PORT);	//目标IP端口号
+	
+	POWER_D = 1;
+	/*step1;initial to HOST*/
+	M8266HostIf_Init();		// Initialise the MCU host interface for M8266WIFI module
+                      	// Includeing GPIOs for nCS/nRESET, SPI, UART if any
+	
+	/*step2;initial to SPI*/
+	while(M8266WIFI_Module_Init_Via_SPI() == 0)
+	{
+		IWDG_Feed();
+		retry++;
+		printf("[INFO]M8266WIFI_Module_Init_Via_SPI failed, retry %d times\r\n",retry);
+		for(i=0;i<3;i++)
+		{
+			M8266WIFI_Module_delay_ms(250);
+			M8266WIFI_Module_delay_ms(250);
+		}
+	}
+	printf("[LOG]M8266WIFI_Module_Init_Via_SPI\r\n");
+}
+
+
 /**
  * @description: 系统初始化
  * @param {type} 
@@ -400,7 +431,58 @@ void system_init(void)
 	//printf("-------------------------\r\n\r\n");
 	#endif
 	IWDG_Feed();//喂狗
+	network_init();
+	while(1)
+	{
+		static u32 timecount=0;
+		static u32 count=0;
+		u32 delta=0;
+		u32 now_time;
+		now_time = count;
+		delta = now_time - timecount;
+		if(delta%10==0)
+		{
+			printf("now_time=%d,delta=%d\r\n",now_time,delta);
+		}
+		if(delta>=50)
+		{
+			char buf[50];
+			
+//			calendar_get_time(&calendar);
+//			calendar_get_date(&calendar);
+			sprintf(buf,"%d.jpg",now_time);
+			printf("filename:%s\r\n",buf);
 	
+			
+			timecount = count;  // 记录最新的时间
+				
+			M8266TransportOpen();	//建立链接
+			WiFiSendPacketBuffer((u8*)buf,1024);
+			#define	 TEST_FILE_NAME 	"0:pic1.jpg"
+			WiFiSendFile((u8*)TEST_FILE_NAME);
+			M8266TransportCLose();
+			//timecount = RTC_GetCounter();  // 记录最新的时间
+		
+		}
+		count++;
+		IWDG_Feed();//喂狗
+		delay_ms(1000);
+//		u8 t=0;
+//		u8 buf[50];
+//		
+//		if(t%10==0)
+//		{
+//			IWDG_Feed();
+//			sprintf((char*)buf, "HELLO%d.txt",t);
+//			printf("file name=%s\r\n",buf);
+//			M8266TransportOpen();	//建立链接
+//			WiFiSendPacketBuffer((u8*)"HELLO%d.txt",1024);
+//			WiFiSendPacketBuffer((u8*)"hello world\r\n",13);
+//			M8266TransportCLose();
+//		}
+//		delay_ms(1000);
+//		t++;
+	}
 	// test battery
 //	while(1)
 //	{

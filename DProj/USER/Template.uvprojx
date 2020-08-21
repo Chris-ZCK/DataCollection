@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER,__FPU_USED=1</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\FWLIB\STM32F4xx_StdPeriph_Driver\inc;..\USER;..\UCOSIII\uC-CPU;..\UCOSIII\uC-LIB;..\UCOSIII\uCOS-III;..\UCOSIII\UCOS_BSP;..\UCOSIII\uCOS_CONFIG;..\UCOSIII\uCOS-III\Source;..\UCOSIII\uC-CPU\ARM-Cortex-M4\RealView;..\UCOSIII\uC-LIB\Ports\ARM-Cortex-M4\RealView;..\UCOSIII\uCOS-III\Ports\ARM-Cortex-M4\Generic\RealView;..\HARDWARE;..\HARDWARE\PWR;..\HARDWARE\KEY;..\HARDWARE\LED;..\HARDWARE\RTC;..\HARDWARE\IWDG;..\HARDWARE\USART3;..\HARDWARE\USART2;..\HARDWARE\RNG;..\APP;..\APP\EC25;..\APP\My_lib;..\HARDWARE\STMFLASH;..\APP\MQTTPacket\src;..\APP\MQTTPacket\ops;..\APP\FATFS\exfuns;..\APP\FATFS\src;..\APP\FATFS\src\option;..\APP\MALLOC;..\HARDWARE\SDIO;..\HARDWARE\SESR;..\HARDWARE\IIC;..\HARDWARE\MAX44009;..\HARDWARE\SHT;..\HARDWARE\SPI;..\HARDWARE\MS5611;..\HARDWARE\BATTERY;..\HARDWARE\GPS;..\APP\USB;..\APP\USB\USB_APP;..\APP\USB\STM32_USB_OTG_Driver\inc;..\APP\USB\STM32_USB_HOST_Library\Core\inc;..\APP\USB\STM32_USB_HOST_Library\Class\MSC\inc</IncludePath>
+              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\FWLIB\STM32F4xx_StdPeriph_Driver\inc;..\USER;..\UCOSIII\uC-CPU;..\UCOSIII\uC-LIB;..\UCOSIII\uCOS-III;..\UCOSIII\UCOS_BSP;..\UCOSIII\uCOS_CONFIG;..\UCOSIII\uCOS-III\Source;..\UCOSIII\uC-CPU\ARM-Cortex-M4\RealView;..\UCOSIII\uC-LIB\Ports\ARM-Cortex-M4\RealView;..\UCOSIII\uCOS-III\Ports\ARM-Cortex-M4\Generic\RealView;..\HARDWARE;..\HARDWARE\PWR;..\HARDWARE\KEY;..\HARDWARE\LED;..\HARDWARE\RTC;..\HARDWARE\IWDG;..\HARDWARE\USART3;..\HARDWARE\USART2;..\HARDWARE\RNG;..\APP;..\APP\EC25;..\APP\My_lib;..\HARDWARE\STMFLASH;..\APP\MQTTPacket\src;..\APP\MQTTPacket\ops;..\APP\FATFS\exfuns;..\APP\FATFS\src;..\APP\FATFS\src\option;..\APP\MALLOC;..\HARDWARE\SDIO;..\HARDWARE\SESR;..\HARDWARE\IIC;..\HARDWARE\MAX44009;..\HARDWARE\SHT;..\HARDWARE\SPI;..\HARDWARE\MS5611;..\HARDWARE\BATTERY;..\HARDWARE\GPS;..\APP\USB;..\APP\USB\USB_APP;..\APP\USB\STM32_USB_OTG_Driver\inc;..\APP\USB\STM32_USB_HOST_Library\Core\inc;..\APP\USB\STM32_USB_HOST_Library\Class\MSC\inc;..\APP\M8266</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1107,6 +1107,26 @@
               <FileName>usbh_usr.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\USB\USB_APP\usbh_usr.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>M8266</GroupName>
+          <Files>
+            <File>
+              <FileName>M8266HostIf_STM32xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\M8266\M8266HostIf_STM32xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>M8266WIFI_ops.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\M8266\M8266WIFI_ops.c</FilePath>
+            </File>
+            <File>
+              <FileName>M8266WIFIDrv_STM32F4xx.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\APP\M8266\M8266WIFIDrv_STM32F4xx.lib</FilePath>
             </File>
           </Files>
         </Group>
