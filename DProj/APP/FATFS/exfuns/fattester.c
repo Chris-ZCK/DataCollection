@@ -409,7 +409,7 @@ u32 srt2integer_pro(u8 *str)
  * @note  max 20
  */
 #define MAX_TRANSFORM_SINGLE 6
-u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
+u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode, u8 device)
 {
 	#define MAX_PATHNAME_DEPTH 100 + 1 //最大目标文件路径+文件名深度
 	u8 cnt = 0;
@@ -494,7 +494,10 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode)
 						//CPU_SR_ALLOC();
 						//OS_CRITICAL_ENTER(); //进入临界区
 						IWDG_Feed();//喂狗
-						sta = mysend_picture(srcpathname, id_pic);	   // 发送文件
+						if(device==1)  // wifi
+							sta = WiFiSendFile(srcpathname,id_pic);	   // 发送文件
+						else  // 4G
+							sta = mysend_picture(srcpathname, id_pic);	   // 发送文件
 						//OS_CRITICAL_EXIT();  
                         //mf_copy(srcpathname, dstpathname, fwmode); // 复制文件
 						mf_unlink(srcpathname);					     // 删除文件
@@ -622,7 +625,7 @@ u8* get_src_dname(u8* dpfn)
 // fwmode:文件写入模式
 // 0:不覆盖原有的文件
 // 1:覆盖原有的文件
-u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode)
+u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode, u8 if_save)
 {
 #define MAX_PATHNAME_DEPTH 100 + 1 //最大目标文件路径+文件名深度
     u8 cnt=0;
@@ -720,10 +723,12 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode)
 						STMFLASH_Write(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
 						//printf("[INFO]STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 						printf("[INFO]STMFLASH_Write|pic_id=%d\r\n",eerom.id_in_flash);
-						mf_unlink(srcpathname);					   // 删除文件
-						
+						if(if_save==0)
+						{
+							mf_unlink(srcpathname);					   // 删除文件
+							printf("[INFO]rm \"%s\",cnt=%d\r\n",srcpathname,cnt);
+						}
 						cnt++;
-						printf("[INFO]rm \"%s\",cnt=%d\r\n",srcpathname,cnt);
 						
                     }
                     srcpathname[srcpathlen] = 0; // 加入结束符
@@ -846,9 +851,13 @@ u8 sensordata_send(u8 *psrc)
 
 
 #define	 SENSOR_DATA_PATH 	"0:sensor.dat"
-u8 mf_sensordata_write(u8 *data)
+#define	 SENSOR_DATA_WIFI_PATH 	"0:sensor_wifi.dat"
+u8 mf_sensordata_write(u8 *data, u8 device)
 {
-	return sensordata_write((u8*)SENSOR_DATA_PATH, data);
+	if(device == 1)  //存到WiFi
+		return sensordata_write((u8*)SENSOR_DATA_PATH, data);
+	else  // 存到sd卡
+		return sensordata_write((u8*)SENSOR_DATA_PATH, data);
 }
 u8 mf_sensordata_send(void)
 {
@@ -921,7 +930,7 @@ void mf_send_log(void)
  * @param {type} 
  * @return {type} 
  */
-u8 WiFiSendFile(u8 *psrc)
+u8 WiFiSendFileRaw(u8 *psrc)
 {
 	u8 res;
 
@@ -973,6 +982,57 @@ u8 WiFiSendFile(u8 *psrc)
 	PrintProgressBarEnd(count,total);
 	printf("[LOG]sensordata_send res=%d\r\n", res);
 	return res;
+}
+
+
+u8 WiFiSendPic(u8 *psrc, u32 myid)
+{
+	u32 count = 0;
+	u8 res;
+	char buf[50];
+
+	res = M8266TransportOpen();	//建立链接
+	if(res == M8266_ERROR)
+	{
+		printf("[WARNING]Fail M8266TransportOpen\r\n");
+		return M8266_ERROR;
+	}
+	sprintf(buf,"%d.dat",myid);
+	WiFiSendPacketBuffer((u8*)buf,1024);  // 发送名字
+	WiFiSendFileRaw(psrc);  // 发送图片
+	res = M8266TransportCLose();
+	if(res == M8266_ERROR)
+	{
+		printf("[WARNING]Fail M8266TransportOpen\r\n");
+		return M8266_ERROR;
+	}
+	
+	return M8266_SUCCESS;
+}
+
+u8 WiFiSendFile(u8 *psrc, u32 myid)
+{
+	u32 count = 0;
+	u8 res;
+	char buf[50];
+
+	res = M8266TransportOpen();	//建立链接
+	if(res == M8266_ERROR)
+	{
+		printf("[WARNING]Fail M8266TransportOpen\r\n");
+		return M8266_ERROR;
+	}
+	sprintf(buf,"%d.jpg",myid);
+	WiFiSendPacketBuffer((u8*)buf,1024);  // 发送名字
+	WiFiSendFileRaw(psrc);  // 发送图片
+	res = M8266TransportCLose();
+	if(res == M8266_ERROR)
+	{
+		printf("[WARNING]Fail M8266TransportOpen\r\n");
+		return M8266_ERROR;
+	}
+	
+	return M8266_SUCCESS;
 }
 
 void mf_config_data_write_flash(u8 *data)

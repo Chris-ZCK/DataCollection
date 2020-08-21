@@ -39,9 +39,10 @@ u8 mf_puts(u8*c);
 u8 mf_log_init(void);
 u8 * get_src_dname ( u8 * dpfn );					/*得到路径下的文件夹*/
 u8 mf_copy ( u8 * psrc, u8 * pdst, u8 fwmode );		/*file   copy*/
-u8 mf_dcopy ( u8 * psrc, u8 * pdst, u8 fwmode );	/*folder copy*/
-u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode);		/*picture send*/
-u8 mf_sensordata_write(u8 *data);
+u8 mf_dcopy ( u8 * psrc, u8 * pdst, u8 fwmode , u8 if_save);	/*folder copy*/
+u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode, u8 device);		/*picture send*/
+//u8 mf_sensordata_write(u8 *data);
+u8 mf_sensordata_write(u8 *data, u8 device);
 u8 mf_sensordata_send(void);
 //u8 mf_config_data_write(u8 *data);
 //u8 mf_config_data_read(u8 *fbuf);
@@ -51,7 +52,9 @@ void mf_send_log(void);
 extern u8 sd_ready_flag;
 void mf_check_dir(u8* path);
 
-u8 WiFiSendFile(u8 *psrc);
+u8 WiFiSendFileRaw(u8 *psrc);
+u8 WiFiSendFile(u8 *psrc, u32 myid);
+u8 WiFiSendPic(u8 *psrc, u32 myid);
 #endif
 
 

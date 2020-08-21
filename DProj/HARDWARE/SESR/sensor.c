@@ -153,14 +153,15 @@ void Data_Packing_sens(char *msg)
 
 void act_get_data(void)
 {	
-	LED_YELLOW_ON();
+	// LED_YELLOW_ON();
 	u8 bufmessages[500];
 	F407USART1_SendString("[INST]]act:act_get_data...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
-	LED_YELLOW_OFF();
+	// LED_YELLOW_OFF();
 	Data_Packing_sens((char *)bufmessages);
-	mf_sensordata_write(bufmessages);
+	mf_sensordata_write(bufmessages,0);  // ´æµ½sd¿¨
+	mf_sensordata_write(bufmessages,1);  // ´æµ½sd-wifi¿¨
 }
 
 // send sensor data

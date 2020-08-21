@@ -93,6 +93,8 @@ vu16 watchdog_f;
 vu16 function_f;
 vu16 function_f2;
 vu16 ec25_on_flag;
+vu16 m8266_on_flag;
+vu16 m8266_worksta_flag;  // WiFi发送数据的开关
 vu16 key_on_flag;
 vu16 led_on_flag;
 #include "queue.h" 
@@ -110,7 +112,7 @@ vu16 hardwork_max = TD_C_H_E;
 vu16 max_work_length = MAX_RUN_TIME;
 ////////////////////////////////////////////
 
-void network_init(void)
+u8 network_init(void)
 {
 	u8 i=0;
 	u8 retry=0;
@@ -136,8 +138,15 @@ void network_init(void)
 			M8266WIFI_Module_delay_ms(250);
 			M8266WIFI_Module_delay_ms(250);
 		}
+		if(retry>10)
+		{
+			printf("[WARNING]Fail M8266WIFI_Module_Init_Via_SPI\r\n");
+			m8266_worksta_flag =0; // 关闭发送数据的指令
+			return 0;
+		}
 	}
 	printf("[LOG]M8266WIFI_Module_Init_Via_SPI\r\n");
+	return 1; // 成功
 }
 
 
@@ -316,6 +325,7 @@ void system_init(void)
 	
 	#if EN_LOG_PRINT > 2
 	mf_scan_files((u8*)"0:");
+	mf_check_dir((u8*)"0:INBOXWIFI");
 	mf_check_dir((u8*)"0:INBOX");
 	mf_check_dir((u8*)"0:ARCH");
 	#endif
@@ -425,12 +435,16 @@ void system_init(void)
 			printf("[INFO]send data\r\n");
 			function_f|=(0x20);  // 发送图片
 			printf("[INFO]end photo\r\n");	
+			function_f|=(0x40);  // 发送数据	
+			printf("[INFO]send photo by wifi\r\n");
 		}			
 	}
 	printf("[INFO]function=%x\r\n",function_f);
 	//printf("-------------------------\r\n\r\n");
 	#endif
 	IWDG_Feed();//喂狗
+	#define MYTEST 1
+	#if MYTEST
 	network_init();
 	while(1)
 	{
@@ -456,40 +470,20 @@ void system_init(void)
 			
 			timecount = count;  // 记录最新的时间
 				
-			M8266TransportOpen();	//建立链接
-			WiFiSendPacketBuffer((u8*)buf,1024);
-			#define	 TEST_FILE_NAME 	"0:pic1.jpg"
-			WiFiSendFile((u8*)TEST_FILE_NAME);
-			M8266TransportCLose();
-			//timecount = RTC_GetCounter();  // 记录最新的时间
-		
+			//M8266TransportOpen();	//建立链接
+			//WiFiSendPacketBuffer((u8*)buf,1024);
+			//#define	 TEST_FILE_NAME 	"0:pic1.jpg"
+			//WiFiSendFile((u8*)TEST_FILE_NAME);
+			
+			WiFiSendPic("0:pic1.jpg",1); // 发送图片 
+			
+			//WiFiSendFile("0:sensor_wifi.dat",1);		
 		}
 		count++;
 		IWDG_Feed();//喂狗
 		delay_ms(1000);
-//		u8 t=0;
-//		u8 buf[50];
-//		
-//		if(t%10==0)
-//		{
-//			IWDG_Feed();
-//			sprintf((char*)buf, "HELLO%d.txt",t);
-//			printf("file name=%s\r\n",buf);
-//			M8266TransportOpen();	//建立链接
-//			WiFiSendPacketBuffer((u8*)"HELLO%d.txt",1024);
-//			WiFiSendPacketBuffer((u8*)"hello world\r\n",13);
-//			M8266TransportCLose();
-//		}
-//		delay_ms(1000);
-//		t++;
 	}
-	// test battery
-//	while(1)
-//	{
-//		battery_data_anay();
-//		delay_ms(1000);
-//		IWDG_Feed();//喂狗
-//	}
+	#endif
 }
 
 
@@ -827,9 +821,13 @@ void act_scan_camera(void)
 	
 	printf("[LOG]try to scan usb，open camera!\r\n");
 	delay_ms(2000);  // 等待相机稳定
-	mf_dcopy("1:DCIM/100IMAGE","0:INBOX",1);
-	mf_scan_files("1:DCIM/100IMAGE");
+	#if WIFI_TRANSFORM_ON
+	mf_dcopy("1:DCIM/100IMAGE","0:INBOXWIFI",1,1);  // save
+	mf_scan_files("0:INBOXWIFI");
+	#endif
+	mf_dcopy("1:DCIM/100IMAGE","0:INBOX",1,0);  // don't save
 	mf_scan_files("0:INBOX");
+	mf_scan_files("1:DCIM/100IMAGE");
 	closeUSB();  // close usb power
 	IWDG_Feed();
 	res = waitUsbDisonnectFlag(5000);
@@ -855,12 +853,12 @@ void act_scan_camera(void)
  */
 void act_take_photo(void)
 {
-	LED_YELLOW_ON();
+	// LED_YELLOW_ON();
 	// 判断相机状态,如果相机处于连接状态，则跳过
 	F407USART1_SendString("[INST]act:act_take_photo...\r\n");
 	delay_ms(1000);
-	delay_ms(1000);
-	LED_YELLOW_OFF();
+	// delay_ms(1000);
+	// LED_YELLOW_OFF();
 	if(usbConnectSwitchGet() == 0)
 	{
 		USB_Photograph();
@@ -886,9 +884,23 @@ u8 act_send_picture(void)
 	delay_ms(1000);	
 	printf("[INFO]mf_scan_files-B: \r\n");
 	mf_scan_files("0:INBOX");  // 扫描文件夹
-	mf_send_pics("0:INBOX","0:ARCH",1);  // 发送图片
+	mf_send_pics("0:INBOX","0:ARCH",1,0);  // 发送图片
 	printf("[INFO]mf_scan_files-A\r\n");
 	mf_scan_files("0:INBOX");  // 扫描文件架
+	return 1;
+}
+
+u8 act_send_picture_wifi(void)
+{
+	F407USART1_SendString("[INST]act:act_send_picture_wifi...\r\n");
+	delay_ms(1000);
+	delay_ms(1000);
+	delay_ms(1000);	
+	printf("[INFO]mf_scan_files-B: \r\n");
+	mf_scan_files("0:INBOXWIFI");  // 扫描文件夹
+	mf_send_pics("0:INBOXWIFI","0:ARCH",1,1);  // 发送图片
+	printf("[INFO]mf_scan_files-A\r\n");
+	mf_scan_files("0:INBOXWIFI");  // 扫描文件架
 	return 1;
 }
 
@@ -1067,6 +1079,18 @@ static void MainTask(void *p_arg) // test fun
 			}			
 		}
 		// 联网成功方可执行
+		if(m8266_worksta_flag==1)
+		{
+			if(function_f&0x40)  // 发送WIFI数据
+			{
+				IWDG_Feed();
+				act_send_picture_wifi();
+				delay_ms(1000);
+				function_f&=(~0x40); 
+				printf("[LOG]finish act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+			}
+		}
+		
 		if(mqtt_state_get() == 1 && !(function_f&0x0F))  // 先执行基础任务再执行发送任务
 		{	
 			if(function_f&0x10)  // 发送传感器
@@ -1407,6 +1431,7 @@ static void MQTTReceiveTask(void *p_arg)
  */
 static void LTEModuleTask(void *p_arg)
 {
+	u8 res2=0;
     OS_ERR err;
 	EC25_ERR res;
     uint16_t time = 0;
@@ -1415,6 +1440,20 @@ static void LTEModuleTask(void *p_arg)
 	
     printf("[TASK]LTEModuleTask run\r\n");
 	delay_ms(500);
+	
+	res2=network_init();
+	if(res2==0) //失败
+	{
+		m8266_worksta_flag=0;
+		function_f&=(~0x40); 
+		// function_f&=(~0x80); 
+		printf("[WARNING]Can't access to WIFI! Close WiFi task\r\n");	
+	}
+	else
+	{
+		m8266_worksta_flag = 1;
+		printf("[LOG]Succeed access to WIFI\r\n");	
+	}
 	
 	res = ec25_Init();  // 初始化4G模组并联网
 	if(res == EC25_ERR_NONE)
@@ -1428,6 +1467,11 @@ static void LTEModuleTask(void *p_arg)
 	{
 		F407USART1_SendString("[WARMING]EC25 ec25_Init error\r\n");
 	}
+	
+	// init M8266
+	IWDG_Feed();//喂狗
+	network_init();
+	
     while (1)
 	{    // ? 这里的重连可能与发送时候的重连冲突    
         if (time % 5 == 0 && f_reconnect == 0)
