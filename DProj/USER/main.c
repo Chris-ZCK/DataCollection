@@ -380,27 +380,38 @@ void system_init(void)
 	// 任务解析
 	printf("[LOG]Task analysis...........\r\n");
 	printf("[INFO]Task count:%d\r\n", cycle.task_cnt);
-	printf("[INFO]Task list:");
+	printf("[INFO]Task list:\r\n");
 	function_f|=(0x01);  // 获取数据
-	printf("\tget data\r\n");
+	printf("\t<1>Get sensor data\r\n");
 
-	function_f|=(0x40);  // 打开WiFi
-	printf("\topen wifi and send data\r\n");
+	if(wifi_work_on_flag==1)
+	{
+		function_f|=(0x40);  // WiFi发送数据	
+		printf("\t<2>WiFi send data\r\n");
+		function_f|=(0x80);  // WiFi发送图片
+		printf("\t<3>WiFi send photo\r\n");	
+	}
+	else
+	{
+		function_f&=(~0x40);  // 关闭wifi数据发送
+		function_f&=(~0x80);  // 关闭wifi图片发送
+	}
+
 	if(cycle.task_cnt%camera_frequency==0 || key_on_flag) 
 	{
 		function_f|=(0x02);  // 拍照
-		printf("\ttake photo\r\n");		
+		printf("\t<4>Take photo\r\n");		
 	}
 	if(cycle.task_cnt%transfer_photo_frequency==0 || key_on_flag) 
 	{
 		function_f|=(0x04);  // 转存照片	
-		printf("\tstore photo\r\n");
+		printf("\t<5>Store photo\r\n");
 	}
 	
 	if(cycle.task_cnt%upload_frequency==0 || key_on_flag)  // 发送数据
 	{
 		
-		printf("\tttry to send data by 4g\r\n");
+		printf("\t<6>4G try to send data\r\n");
 		
 		#if QUEERY_BATTERY_ON
 		{
@@ -467,8 +478,12 @@ void system_init(void)
 		else
 		{
 			m8266_work_state = 0;
+			function_f&=(~0x40);   // 关闭WiFi数据发送
+			function_f&=(~0x80);   // 关闭WiFi图片发送
 			printf("[LOG]Fail access to WiFi\r\n");
-			
+			printf("[LOG]wifi anomaly,skip act_send_data_wifi, fun:%x~~~~~\r\n",function_f);
+			printf("[LOG]wifi anomaly,skip act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+	
 			if(ec25_on_flag ==0)
 			{
 				POWER_D = 0;
@@ -1122,16 +1137,35 @@ static void MainTask(void *p_arg) // test fun
 				if(m8266_work_state==1)  
 				{
 					IWDG_Feed();
-					// act_send_picture_wifi();
-					WiFiSendPic((u8*)"0:pic1.jpg",111); // test send one picture.	
+					// act_send_data_wifi();
+					//WiFiSendPic((u8*)SENSOR_DATA_WIFI_PATH,222); // test send one picture.	
+					mf_WiFiSendFile((u8*)SENSOR_DATA_WIFI_PATH);
 					
 					delay_ms(1000);
 					function_f&=(~0x40); 
-					printf("[LOG]finish act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+					printf("[LOG]finish act_send_data_wifi, fun:%x~~~~~\r\n",function_f);
 				}
 				else
 				{	
 					function_f&=(~0x40); 
+					printf("[LOG]wifi anomaly,skip act_send_data_wifi, fun:%x~~~~~\r\n",function_f);
+				}
+			}
+			else if(function_f&0x80)	// WiFi发送图片
+			{	
+				if(m8266_work_state==1)  
+				{
+					IWDG_Feed();
+					// act_send_picture_wifi();
+					WiFiSendPic((u8*)"0:pic1.jpg"); // test send one picture.	
+					
+					delay_ms(1000);
+					function_f&=(~0x80); 
+					printf("[LOG]finish act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+				}
+				else
+				{	
+					function_f&=(~0x80); 
 					printf("[LOG]wifi anomaly,skip act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
 				}
 			}

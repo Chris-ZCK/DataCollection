@@ -24,7 +24,7 @@
 #define _M8266WIFI_OPS_H_
 #include "sys.h" 
 
-#define WIFI_NO 1
+#define WIFI_NO 0
 #if WIFI_NO == 1
 //#define TARGET_SSID			"@PHICOMM_28"
 //#define TARGET_PASSWORD		"12345678"

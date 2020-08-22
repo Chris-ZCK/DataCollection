@@ -495,7 +495,7 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode, u8 device)
 						//OS_CRITICAL_ENTER(); //进入临界区
 						IWDG_Feed();//喂狗
 						if(device==1)  // wifi
-							sta = WiFiSendFile(srcpathname,id_pic);	   // 发送文件
+							sta = WiFiSendPic(srcpathname);	   // 发送文件
 						else  // 4G
 							sta = mysend_picture(srcpathname, id_pic);	   // 发送文件
 						//OS_CRITICAL_EXIT();  
@@ -849,13 +849,10 @@ u8 sensordata_send(u8 *psrc)
     return res;
 }
 
-
-#define	 SENSOR_DATA_PATH 	"0:sensor.dat"
-#define	 SENSOR_DATA_WIFI_PATH 	"0:sensor_wifi.dat"
 u8 mf_sensordata_write(u8 *data, u8 device)
 {
 	if(device == 1)  //存到WiFi
-		return sensordata_write((u8*)SENSOR_DATA_PATH, data);
+		return sensordata_write((u8*)SENSOR_DATA_WIFI_PATH, data);
 	else  // 存到sd卡
 		return sensordata_write((u8*)SENSOR_DATA_PATH, data);
 }
@@ -930,7 +927,7 @@ void mf_send_log(void)
  * @param {type} 
  * @return {type} 
  */
-u8 WiFiSendFileRaw(u8 *psrc)
+u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve)
 {
 	u8 res;
 
@@ -973,12 +970,18 @@ u8 WiFiSendFileRaw(u8 *psrc)
 				//PrintProgressBar(count, total);
 			}
 			f_close(fsrc);
+			if(if_reserve==0)
+			{
+				f_unlink((const char*)psrc);  // delet sent data
+				printf("[INFO]rm file:%s\r\n",psrc);
+			}
 		}
 		else
 		{
 			printf("[WARNING]sensordata_send|fail to f_open %s\r\n", psrc);
 		}
 	}
+	
 	myfree(SRAMIN, fsrc);
 	myfree(SRAMIN, fbuf);
 	
@@ -988,10 +991,17 @@ u8 WiFiSendFileRaw(u8 *psrc)
 }
 
 #define	 TEST_FILE_NAME 	"0:pic1.jpg"
-u8 WiFiSendPic(u8 *psrc, u32 myid)
+u8 WiFiSendPic(u8 *psrc)
 {
 	u8 res;
-	char buf[50];
+
+	char filename[70];
+	calendar_get_time(&calendar);
+	calendar_get_date(&calendar);
+	sprintf(filename,"%02d%02d%02d%02d%02d%02d",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	strcat(filename,"_");
+	strcat(filename,MY_TOPIC);
+	strcat(filename,".jpg");
 
 	res = M8266TransportOpen();	//建立链接
 	if(res == M8266_ERROR)
@@ -999,13 +1009,12 @@ u8 WiFiSendPic(u8 *psrc, u32 myid)
 		printf("[WARNING]Fail M8266TransportOpen\r\n");
 		return M8266_ERROR;
 	}
-	sprintf(buf,"%d.jpg",myid);
-	printf("[INFO]WiFi send picture name id:%s\r\n",buf);
-	WiFiSendPacketBuffer((u8*)buf,SEND_DATA_MAX_SIZE);  // 发送名字
+	printf("[INFO]WiFi send picture name id:%s\r\n",filename);
+	WiFiSendPacketBuffer((u8*)filename,SEND_DATA_MAX_SIZE);  // 发送名字
 	#if TEST_WIFI_SENDING_ON
 	WiFiSendFileRaw(TEST_FILE_NAME);  // 发送图片
 	#else
-	WiFiSendFileRaw(psrc);  // 发送图片TEST_FILE_NAME
+	WiFiSendFileRaw(psrc,1);  // 发送图片TEST_FILE_NAME
 	#endif
 	res = M8266TransportCLose();
 	if(res == M8266_ERROR)
@@ -1017,20 +1026,29 @@ u8 WiFiSendPic(u8 *psrc, u32 myid)
 	return M8266_SUCCESS;
 }
 
-u8 WiFiSendFile(u8 *psrc, u32 myid)
+u8 mf_WiFiSendFile(u8 *psrc)
 {
 	u8 res;
-	char buf[50];
 
+	char filename[70];
+	calendar_get_time(&calendar);
+	calendar_get_date(&calendar);
+	sprintf(filename,"%02d%02d%02d%02d%02d%02d",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	strcat(filename,"_");
+	strcat(filename,MY_TOPIC);
+	strcat(filename,".dat");
+	
 	res = M8266TransportOpen();	//建立链接
 	if(res == M8266_ERROR)
 	{
 		printf("[WARNING]Fail M8266TransportOpen\r\n");
 		return M8266_ERROR;
 	}
-	sprintf(buf,"%d.dat",myid);
-	WiFiSendPacketBuffer((u8*)buf,SEND_DATA_MAX_SIZE);  // 发送名字
-	WiFiSendFileRaw(psrc);  // 发送图片
+	printf("[INFO]WiFi send file name id:%s\r\n",filename);
+	WiFiSendPacketBuffer((u8*)filename,SEND_DATA_MAX_SIZE);  // 发送名字
+	
+	WiFiSendFileRaw(psrc,0);  // 发送数据
+	
 	res = M8266TransportCLose();
 	if(res == M8266_ERROR)
 	{
@@ -1040,6 +1058,7 @@ u8 WiFiSendFile(u8 *psrc, u32 myid)
 	
 	return M8266_SUCCESS;
 }
+
 
 void mf_config_data_write_flash(u8 *data)
 {

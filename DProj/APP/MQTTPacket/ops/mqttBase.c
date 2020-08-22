@@ -22,22 +22,24 @@ char MY_TOPIC_MSGUP[30] = "559D50415283/msgup";
 char MY_TOPIC_CONFIG[30] = "559D50415283/config";
 
 char CLIENTID[30] =  "005a003f3436510b32323538";
-
+char MY_TOPIC[15] = "559D50415283";
 
 void mqtt_UID_set(void)
 {
 	u32 mcuID[3];
-	mcuID[0] = (*(volatile uint32_t *)0x1fff7a10);  //???¦·?ID
+	mcuID[0] = (*(volatile uint32_t *)0x1fff7a10);  //CPU ID
 	mcuID[1] = (*(volatile uint32_t *)0x1fff7a14);
 	mcuID[2] = (*(volatile uint32_t *)0x1fff7a18);
 
 	sprintf(CLIENTID, "%08X%08X%08X", mcuID[0], mcuID[1], mcuID[2]);
 
-	sprintf(MY_TOPIC_PICDOWN, "%08X%04X/picdown", mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
-	sprintf(MY_TOPIC_PICUP  , "%08X%04X/picup",   mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
-	sprintf(MY_TOPIC_MSGDOWN, "%08X%04X/msgdown", mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
-	sprintf(MY_TOPIC_MSGUP  , "%08X%04X/msgup",   mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
-	sprintf(MY_TOPIC_CONFIG , "%08X%04X/config",  mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
+	sprintf(MY_TOPIC, "%08X%04X", mcuID[0]+mcuID[1], (u16)(mcuID[2]+(mcuID[2]>>16)));
+	
+	sprintf(MY_TOPIC_PICDOWN, "%s/picdown", MY_TOPIC);
+	sprintf(MY_TOPIC_PICUP  , "%s/picup",   MY_TOPIC);
+	sprintf(MY_TOPIC_MSGDOWN, "%s/msgdown", MY_TOPIC);
+	sprintf(MY_TOPIC_MSGUP  , "%s/msgup",   MY_TOPIC);
+	sprintf(MY_TOPIC_CONFIG , "%s/config",  MY_TOPIC);
 	
 	printf("[INFO]MQTT UID:\r\n");
 	printf("[INFO]*MQTT:Clinet ID       :%s\r\n",CLIENTID);
