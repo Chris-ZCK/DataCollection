@@ -348,17 +348,17 @@ void system_init(void)
 	f_mount(fs[1], "1:", 1);  // 挂载U盘
 	#endif	
 	
- 	printf("--------sys value--------\r\n");
-	printf("sensor_frequency        :%d s\r\n",sensor_frequency);
-	printf("camera_frequency        :%d s\r\n",camera_frequency*sensor_frequency);
-	printf("upload_frequency        :%d s\r\n",upload_frequency*sensor_frequency);
-	printf("transfer_photo_frequency:%d s\r\n",transfer_photo_frequency*sensor_frequency);
-	printf("voltage_fuse_threshold  :%d mV\r\n",voltage_fuse_threshold);
-	printf("current_fuse_threshold  :%d mA\r\n",current_fuse_threshold);
-	printf("hardwork_min            :%d H\r\n",hardwork_min);
-	printf("hardwork_max            :%d H\r\n",hardwork_max);
-	printf("max_work_length         :%d s\r\n",max_work_length);
-	printf("-------------------------\r\n");
+ 	printf("[INFO]--------sys value--------\r\n");
+	printf("[INFO]sensor_frequency        :%d s\r\n",sensor_frequency);
+	printf("[INFO]camera_frequency        :%d s\r\n",camera_frequency*sensor_frequency);
+	printf("[INFO]upload_frequency        :%d s\r\n",upload_frequency*sensor_frequency);
+	printf("[INFO]transfer_photo_frequency:%d s\r\n",transfer_photo_frequency*sensor_frequency);
+	printf("[INFO]voltage_fuse_threshold  :%d mV\r\n",voltage_fuse_threshold);
+	printf("[INFO]current_fuse_threshold  :%d mA\r\n",current_fuse_threshold);
+	printf("[INFO]hardwork_min            :%d H\r\n",hardwork_min);
+	printf("[INFO]hardwork_max            :%d H\r\n",hardwork_max);
+	printf("[INFO]max_work_length         :%d s\r\n",max_work_length);
+	printf("[INFO]-------------------------\r\n");
 	
 	Power_Ctrl_Init(); // 电源初始化	
 	
@@ -1651,7 +1651,7 @@ void  SystemDatasBroadcast (void *p_arg)
 		if(function_f==0 && function_f2==0)  // 如果超过420s，则自动休眠
 		{
 			#if SLEEP_MODE
-			printf("$Well done, task accomplished!!!!!!");
+			printf("[INFO]Well done, task accomplished!!!!!!\r\n");
 			Sys_Enter_Standby(30);
 			#endif
 		}

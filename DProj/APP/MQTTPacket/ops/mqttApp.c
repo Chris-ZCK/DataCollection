@@ -210,6 +210,7 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 	// 获取文件状态
 	FIL fl_in;
 	FRESULT res;
+	uint32_t totallen;
 	uint32_t getLen;			 // 获取包长度
 	uint32_t otherLen;			 // 剩余总长度
 	uint16_t picPack_offset = 0; // package长度/偏移量
@@ -225,6 +226,7 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 	printf("[INFO]now sending picture_id=%d#\r\n", picture_id);
 	// 读取文件大小
 	pic_pack.data_total_length = f_size(&fl_in);
+	totallen=pic_pack.data_total_length;
 	// 计算传输次数
 	pic_pack.packet_total_num = (pic_pack.data_total_length / packagelen) + 1;
 	printf("[INFO]f_open successfully <file_path:%s|file_size:%d|sub_num:%d|packagelen:%d>\r\n",
@@ -278,6 +280,7 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 		else // 发送数据完毕，等待确认数据
 		{
 			f_close(&fl_in);
+			printf("[INFO]otherLen:%d,crc=%0X,[%2.2f%%]\r\n", otherLen, pack_crc,(float)(packagelen-otherLen)*100/totallen);
 			F407USART1_SendString("[LOG]PICTURE MY_MQTT_ERR_NONE，发送成功\r\n");
 			LED_GREEN_OFF();
 			return MY_MQTT_ERR_NONE;
@@ -309,7 +312,7 @@ MY_MQTT_ERR send_picture(uint8_t *pic_buff, uint32_t pic_bufflen,
 			}
 		}
 		otherLen -= getLen;
-		printf("[INFO]otherLen:%d,crc=%0X\r\n", otherLen, pack_crc);
+		printf("[INFO]otherLen:%d,crc=%0X,[%2.2f%%]\r\n", otherLen, pack_crc,(float)(packagelen-otherLen)*100/totallen);
 		pic_pack.packet_id++;
 	}
 	return MY_MQTT_ERR_NONE;

@@ -76,7 +76,7 @@ void Data_Packing_sens(char *msg)
 	else
 	{
 		ec25_csq = -9999;
-		printf("[WARNING]not ec25 queery %d\r\n", ec25_csq);
+		printf("[WARNING]not ec25 queery 4G CSQ\r\n");
 		
 		gps_longitude = -9999;
 		gps_latitude = -9999;
@@ -150,7 +150,9 @@ void Data_Packing_sens(char *msg)
 	sprintf(tempdata,"|OUT/RLY/%d\n",relay_sta);
 	strcat(msg,tempdata);	
 
-	printf("----------\r\n*info:%s\r\n----------\r\n", msg);
+	printf("[INFO]------------------------------\r\n");
+	printf("%s\r\n", msg);
+	printf("[INFO]------------------------------\r\n");
 }
 
 void act_get_data(void)

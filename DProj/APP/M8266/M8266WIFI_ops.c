@@ -549,7 +549,10 @@ u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)
 			else  // 0x10, 0x11 here may due to spi failure during sending, and normally packet has been sent partially, i.e. sent!=0
 			{
 				// do some work here
-				printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				// printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				M8266WIFI_Module_delay_ms(50);
+				printf("[WARN:%4X]",status);
+				
 				// M8266HostIf_delay_us(250);       // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 250us here, may repeat query 8- times, but in a small interval
 				// M8266WIFI_Module_delay_ms(25);	   // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 1ms here,   may repeat query 2- times, but in a large interval
 				// if(sent<SEND_DATA_MAX_SIZE)
@@ -599,6 +602,7 @@ u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)
 			{
 				// do some work here
 				// printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				M8266WIFI_Module_delay_ms(50);
 				printf("[WARN:%4X]",status);
 				goto exit;
 			}
