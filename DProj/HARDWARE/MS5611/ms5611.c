@@ -42,12 +42,12 @@ uint16_t paInitCnt = 0;
 uint8_t paOffsetInited = 0;
 void MS5611_Init(void)
 {
-    SPI1_Init();
-    //	 SPI1_SetSpeed(SPI_BaudRatePrescaler_16);
+    SPI3_Init();
+    //	 SPI3_SetSpeed(SPI_BaudRatePrescaler_16);
     delay_ms(1000);
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0x1e); //ms5611重启
+    SPI3_ReadWriteByte(0x1e); //ms5611重启
     MS5611_CS = 1;
     delay_ms(3); //延时3ms
 	MS5611_PROM_READ();
@@ -56,54 +56,54 @@ void MS5611_PROM_READ(void)
 {
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0xa2);
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0xa2);
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
     c[0] = 0;
     c[0] = (c[0] | (data[0] << 8)) + data[1];
 
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0xa4);
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0xa4);
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
     c[1] = 0;
     c[1] = (c[1] | (data[0] << 8)) + data[1];
 
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0xa6);
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0xa6);
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
     c[2] = 0;
     c[2] = (c[3] | (data[0] << 8)) + data[1];
 
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0xa8);
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0xa8);
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
     c[3] = 0;
     c[3] = (c[3] | (data[0] << 8)) + data[1];
 
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0xaa);
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0xaa);
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
     c[4] = 0;
     c[4] = (c[4] | (data[0] << 8)) + data[1];
 
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0xac);
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0xac);
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
     c[5] = 0;
     c[5] = (c[5] | (data[0] << 8)) + data[1];
@@ -114,7 +114,7 @@ void MS5611_Temperature_Get(void)
 {
     MS5611_CS = 0;
     delay_us(1);
-    SPI1_ReadWriteByte(0x58); //ad开始采集温度值，OSR=4096
+    SPI3_ReadWriteByte(0x58); //ad开始采集温度值，OSR=4096
     //MS5611_CS = 1;
     delay_ms(9);
     MS5611_CS = 1;
@@ -122,10 +122,10 @@ void MS5611_Temperature_Get(void)
     delay_ms(1);
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0x00); //采样结束后读取ad值
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
-    data[2] = SPI1_ReadWriteByte(0x55); //共24位
+    SPI3_ReadWriteByte(0x00); //采样结束后读取ad值
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
+    data[2] = SPI3_ReadWriteByte(0x55); //共24位
     MS5611_CS = 1;
     D2 = 0;
     D2 = ((D2 | (data[0] << 16)) | (data[1] << 8)) + data[2];
@@ -136,7 +136,7 @@ void MS5611_Pressure_Get(void)
 {
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0x48); //ad开始采集大气压值.OSR=4096
+    SPI3_ReadWriteByte(0x48); //ad开始采集大气压值.OSR=4096
     //MS5611_CS = 1;
     delay_ms(9);
     MS5611_CS = 1;
@@ -144,10 +144,10 @@ void MS5611_Pressure_Get(void)
     delay_ms(1);
     MS5611_CS = 0;
     delay_us(10);
-    SPI1_ReadWriteByte(0x00); //采样结束后读取ad值
-    data[0] = SPI1_ReadWriteByte(0x55);
-    data[1] = SPI1_ReadWriteByte(0x55);
-    data[2] = SPI1_ReadWriteByte(0x55);
+    SPI3_ReadWriteByte(0x00); //采样结束后读取ad值
+    data[0] = SPI3_ReadWriteByte(0x55);
+    data[1] = SPI3_ReadWriteByte(0x55);
+    data[2] = SPI3_ReadWriteByte(0x55);
     MS5611_CS = 1;
 
     D1 = 0;

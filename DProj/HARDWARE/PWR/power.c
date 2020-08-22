@@ -27,19 +27,19 @@ void Power_Ctrl_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  // 上拉
 	GPIO_Init(GPIOE, &GPIO_InitStructure);  // 初始化
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;  // 普通输出模式
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;  // 推挽输出
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;  // 100MHz
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  // 上拉
-	GPIO_Init(GPIOB, &GPIO_InitStructure);  // 初始化
+//	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;  // 普通输出模式
+//	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;  // 推挽输出
+//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;  // 100MHz
+//	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  // 上拉
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);  // 初始化
 	
 	// POWER_OUT & POWER_CAM
 	GPIO_SetBits(GPIOE, GPIO_Pin_11 | GPIO_Pin_12);
 	// POWER_D & POWER_LE & POWER_USB & POWER_USB & POWER_OUT3V3 & POWER_OUT5
 	GPIO_ResetBits(GPIOE, GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
 	// Open WiFi
-	GPIO_SetBits(GPIOB, GPIO_Pin_0);
+	//GPIO_SetBits(GPIOB, GPIO_Pin_0);
 	#if EN_LOG_PRINT>=2
 	printf("[LOG]Power_Ctrl_Init\r\n");
 	#endif

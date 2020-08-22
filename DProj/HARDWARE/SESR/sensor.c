@@ -27,7 +27,9 @@ void Data_Packing_sens(char *msg)
 	temp=SHT20.TEMP_POLL;
 	hum=SHT20.HUMI_POLL;
 	lus=FluxMeasurement_get();
+	#if SESOR_MS5611_ON
 	BaroPressure=MS5611_Compensation_Calcu();
+	#endif
 	#endif
 
 	// 4GÊý¾Ý
@@ -84,8 +86,8 @@ void Data_Packing_sens(char *msg)
 
 	// Sensors
 	sprintf(msg,"msgty//sdata|sid//11|time//%s",now_time);
-  //SHT21-temp
-  sprintf(tempdata,"|t/SHT31/%f",temp);
+	//SHT21-temp
+	sprintf(tempdata,"|t/SHT31/%f",temp);
 	strcat(msg,tempdata);
 	//SHT21-humi
 	sprintf(tempdata,"|h/SHT31/%f",hum);

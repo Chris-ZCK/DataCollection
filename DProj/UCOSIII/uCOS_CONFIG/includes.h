@@ -114,15 +114,21 @@ extern struct flash_package eerom;
 #define DEBUG_MODE    1
 
 // 睡眠模式
-#define SLEEP_MODE    0
+#define SLEEP_MODE    1
+
 // USB开关
 #define USB_MODE      1
+
+
 // 传感器开关
 #define SENSOR_MODE   1
+#define SESOR_MS5611_ON 0
+
 // 解析任务
-#define ANAY_TASK_ON  0
+#define ANAY_TASK_ON  1
+
 // 按键控制测试
-#define KEY_SCAN_ON 1
+#define KEY_SCAN_ON 0
 
 // 是否询问GPS数据
 #define QUEERY_GPS_ON 0
@@ -158,11 +164,11 @@ extern struct flash_package eerom;
 //////////////////////////////
 //////////////////////////////
 // 重要系统参数
-#define TEST_PARA 0
+#define TEST_PARA 1
 
 #if TEST_PARA
 // Sys cycle, unit:s
-#define CYCLE_TIME 		60
+#define CYCLE_TIME 		180
 
 // store photo, unit:s
 #define TASK_S_P_CNT	  CYCLE_TIME*2
@@ -182,6 +188,8 @@ extern struct flash_package eerom;
 // 待机时间
 #define STANDBY_TIME	30
 #define MAX_RUN_TIME	1200
+
+#define WIFI_DEFAULT_WORK	1
 #else
 // Sys cycle, unit:s
 #define CYCLE_TIME 		600
@@ -199,11 +207,13 @@ extern struct flash_package eerom;
 #define TD_B_V_VAL		12000
 
 #define TD_C_H_S		0
-#define TD_C_H_E		23
+#define TD_C_H_E		12
 
 // 待机时间
 #define STANDBY_TIME	30
 #define MAX_RUN_TIME	1200
+
+#define WIFI_DEFAULT_WORK	0
 #endif
 //////////////////////////////
 //////////////////////////////
@@ -264,6 +274,29 @@ extern struct flash_package eerom;
 #include "queue.h" 
 #include "rng.h"
 
+/////////////////systerm runing state//////////
+//vu16 watchdog_f;
+//vu16 function_f;
+//vu16 function_f2;
+//vu16 ec25_on_flag;
+//vu16 m8266_on_flag;
+//vu16 m8266_work_state;  // WiFi发送数据的开关
+//vu16 key_on_flag;
+//vu16 led_on_flag;
+////////////////////////////////////////////
+
+/////////////////systerm parameters//////////
+//vu16 sensor_frequency = CYCLE_TIME;
+//vu16 camera_frequency = TASK_T_P_CNT;
+//vu16 upload_frequency = TASK_S_D_CNT;
+//vu16 transfer_photo_frequency = TASK_S_P_CNT;
+//vu16 voltage_fuse_threshold = TD_B_V_VAL;
+//vu16 current_fuse_threshold = TD_C_C_VAL;
+//vu16 hardwork_min = TD_C_H_S;
+//vu16 hardwork_max = TD_C_H_E;
+//vu16 max_work_length = MAX_RUN_TIME;
+//vu16 wifi_work_on_flag = WIFI_DEFAULT_WORK;
+////////////////////////////////////////////
 
 extern	vu16 function_f;
 u8 analyze_config_para(char *buf, u16 * val);

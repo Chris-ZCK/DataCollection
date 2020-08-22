@@ -515,6 +515,119 @@ u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)
 	int total_sent = 0;
 
 	// PrintProgressBarInit();
+	// IWDG_Feed();
+	remainder_item = buflen;
+	while(remainder_item >= SEND_DATA_MAX_SIZE)
+	{
+		sent = M8266WIFI_SPI_Send_Data(buf+total_sent, SEND_DATA_MAX_SIZE, g_link_no, &status);
+		total_sent += sent;  // 更新待发送的位置
+
+		if( (sent!=SEND_DATA_MAX_SIZE) || ( (status&0xFF)!= 0 ) )  // 尽量保证按1024字节发送数据
+		{
+			if( (status&0xFF)==0x12 )  // 0x12 = Module send buffer full, and normally sent return with 0, i.e. this packet has not been sent anyway
+			{       
+				// printf("Module send buffer full!\r\n");                       
+				// M8266HostIf_delay_us(250);    // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 250us here, may repeat query 8- times, but in a small interval
+				M8266WIFI_Module_delay_ms(10);	 // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 1ms here,   may repeat query 2- times, but in a large interval
+				// if(sent<SEND_DATA_MAX_SIZE)
+				// total_sent += M8266WIFI_SPI_Send_Data(buf+total_sent, SEND_DATA_MAX_SIZE-sent, g_link_no, &status);  // try to resend it					
+			}
+			else if(((status&0xFF)==0x14)  	// 0x14 = connection of link_no not present
+			||((status&0xFF)==0x15) )		// 0x15 = connection of link_no closed
+			{
+				// do some work here, including re-establish the closed connect or link here and re-send the packet if any
+				// additional work here
+				printf("[WARNING]Connection of socket=%d not present OR connection of socket=%d closed!\r\n",g_link_no,g_link_no);
+				goto exit;	
+			}
+			else if	((status&0xFF)==0x18)  //  0x18 = TCP server in listening states and no tcp clients connecting to so far
+			{
+				printf("[WARNING]TCP server in listening states and no tcp clients connecting to so far!\r\n");
+				M8266HostIf_delay_us(250);	
+				goto exit;
+			}				
+			else  // 0x10, 0x11 here may due to spi failure during sending, and normally packet has been sent partially, i.e. sent!=0
+			{
+				// do some work here
+				printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				// M8266HostIf_delay_us(250);       // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 250us here, may repeat query 8- times, but in a small interval
+				// M8266WIFI_Module_delay_ms(25);	   // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 1ms here,   may repeat query 2- times, but in a large interval
+				// if(sent<SEND_DATA_MAX_SIZE)
+				// 	total_sent += M8266WIFI_SPI_Send_Data(buf+total_sent, SEND_DATA_MAX_SIZE-sent, g_link_no, &status);  // try to resend the left packet
+				goto exit;
+			}
+			
+		}
+		remainder_item = buflen - total_sent;
+		
+		// printf("remainder_item:%d\r\n",remainder_item);
+		// PrintProgressBar(total_sent, buflen);
+		M8266WIFI_Module_delay_ms(20);
+	}
+	
+	// Send the remaining items
+	while(total_sent != buflen)//当小于1024的时候回调出
+	{
+		sent = M8266WIFI_SPI_Send_Data(buf+total_sent, remainder_item, g_link_no, &status);
+		total_sent += sent;	//更新待发送的位置
+				
+		if( (sent!=remainder_item) || ( (status&0xFF)!= 0 ) ) //尽量保证按1024字节发送数据
+		{
+			if( (status&0xFF)==0x12 )  // 0x12 = Module send buffer full, and normally sent return with 0, i.e. this packet has not been sent anyway
+			{       
+				// printf("Module send buffer full!\r\n");                       
+				// M8266HostIf_delay_us(250);    // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 250us here, may repeat query 8- times, but in a small interval
+				M8266WIFI_Module_delay_ms(10);	 // if 500Kbytes/s, need 2ms for 1Kbytes packet to be sent. If use 1ms here,   may repeat query 2- times, but in a large interval
+				// if(sent<SEND_DATA_MAX_SIZE)
+				// 	total_sent += M8266WIFI_SPI_Send_Data(buf+total_sent, SEND_DATA_MAX_SIZE-sent, g_link_no, &status);  // try to resend it					
+			}
+			else if(  ((status&0xFF)==0x14)  // 0x14 = connection of link_no not present
+			||((status&0xFF)==0x15) ) 		 // 0x15 = connection of link_no closed
+			{
+				// do some work here, including re-establish the closed connect or link here and re-send the packet if any
+				// additional work here
+				printf("[WARNING]Connection of link_no not present OR connection of link_no %d  closed!\r\n",g_link_no);
+				goto exit;
+			}
+			else if	((status&0xFF)==0x18)       // 0x18 = TCP server in listening states and no tcp clients connecting to so far
+			{
+				printf("[WARNING]TCP server in listening states and no tcp clients connecting to so far!\r\n");
+				M8266HostIf_delay_us(250);	
+				goto exit;
+			}				
+			else // 0x10, 0x11 here may due to spi failure during sending, and normally packet has been sent partially, i.e. sent!=0
+			{
+				// do some work here
+				printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				goto exit;
+			}
+			
+		}
+		remainder_item = buflen - total_sent;
+		// printf("remainder_item:%d\r\n",remainder_item);
+		// PrintProgressBar(total_sent, buflen);
+		M8266WIFI_Module_delay_ms(20);
+	}
+exit:	
+	if(total_sent == buflen)
+	{
+		// printf("[LOG]Transport_sendPacketBuffer Succeed <sent-buflen:%d-%d>|Socket:%d\r\n",total_sent,buflen,g_link_no);
+	}
+	else
+		printf("[WARNING]Transport_sendPacketBuffer Fail <sent-buflen:%d-%d>|Socket:%d\r\n",total_sent,buflen,g_link_no);
+    return total_sent;
+}
+/*
+u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)
+{
+	// u8 stateValeu=0;
+	u16 status	= 0;	 //用于回传状态 
+
+    int remainder_item;  // 剩余的字节数量
+	int sent = 0;
+	int total_sent = 0;
+
+	// PrintProgressBarInit();
 	IWDG_Feed();
 	remainder_item = buflen;
 	while(remainder_item >= SEND_DATA_MAX_SIZE)
@@ -617,6 +730,7 @@ exit:
 		printf("[WARNING]Transport_sendPacketBuffer Fail <sent-buflen:%d-%d>|Socket:%d\r\n",total_sent,buflen,g_link_no);
     return total_sent;
 }
+*/
 
 //u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)
 /*u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)

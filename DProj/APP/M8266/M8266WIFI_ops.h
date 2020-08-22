@@ -26,11 +26,18 @@
 
 #define WIFI_NO 1
 #if WIFI_NO == 1
-#define TARGET_SSID			"@PHICOMM_28"
+//#define TARGET_SSID			"@PHICOMM_28"
+//#define TARGET_PASSWORD		"12345678"
+#define TARGET_SSID			"zkyxby"
 #define TARGET_PASSWORD		"12345678"
+#define TEST_REMOTE_IP_ADDR    "10.10.10.100"
+#define TEST_REMOTE_PORT        5555
 #else
 #define TARGET_SSID			"wynjd8802"
 #define TARGET_PASSWORD		""
+#define TEST_REMOTE_IP_ADDR   	"192.168.1.101"
+#define TEST_REMOTE_PORT        8000
+
 #endif
 
 
@@ -52,10 +59,7 @@
 // Set TCP/UDP Connections
 #define TEST_CONNECTION_TYPE  	1      /* 0=WIFI module as UDP, 1=WIFI module as TCP Client, 2=WIFI module as TCP Server */
 #define TEST_LOCAL_PORT       	0      /* local port=0 then an updated random port will be generated each time. To avoid the rejection by some TCP server due to repeative same ip:port */
-//#define TEST_REMOTE_IP_ADDR   	"192.168.1.100"
-//#define TEST_REMOTE_PORT        8000
-#define TEST_REMOTE_IP_ADDR    "10.10.10.100"
-#define TEST_REMOTE_PORT        5555
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////

@@ -89,16 +89,16 @@ void SoftReset(void)
 struct cycle_package cycle;
 struct flash_package eerom;
 #define FLASH_WRITE_MODE 0
+/////////////////systerm runing state//////////
 vu16 watchdog_f;
 vu16 function_f;
 vu16 function_f2;
 vu16 ec25_on_flag;
 vu16 m8266_on_flag;
-vu16 m8266_worksta_flag;  // WiFi发送数据的开关
+vu16 m8266_work_state;  // WiFi发送数据的开关
 vu16 key_on_flag;
 vu16 led_on_flag;
-#include "queue.h" 
-#include "rng.h"
+////////////////////////////////////////////
 
 /////////////////systerm parameters//////////
 vu16 sensor_frequency = CYCLE_TIME;
@@ -110,6 +110,7 @@ vu16 current_fuse_threshold = TD_C_C_VAL;
 vu16 hardwork_min = TD_C_H_S;
 vu16 hardwork_max = TD_C_H_E;
 vu16 max_work_length = MAX_RUN_TIME;
+vu16 wifi_work_on_flag = WIFI_DEFAULT_WORK;
 ////////////////////////////////////////////
 
 u8 network_init(void)
@@ -117,10 +118,10 @@ u8 network_init(void)
 	u8 i=0;
 	u8 retry=0;
 	
-	printf("TEST_CONNECTION_TYPE = %d(0-UDP, 1-Client,2-Server)\r\n",TEST_CONNECTION_TYPE); //连接类型
-	printf("TEST_LOCAL_PORT      = %d(0:updated random port)\r\n",TEST_LOCAL_PORT);			//本地端口号
-	printf("TEST_REMOTE_IP_ADDR  = %s\r\n",TEST_REMOTE_IP_ADDR);//目标IP
-	printf("TEST_REMOTE_PORT     = %d\r\n",TEST_REMOTE_PORT);	//目标IP端口号
+	printf("[INFO]WIFI_CONNECTION_TYPE = %d(0-UDP, 1-Client,2-Server)\r\n",TEST_CONNECTION_TYPE); //连接类型
+	printf("[INFO]WIFI_LOCAL_PORT      = %d(0:updated random port)\r\n",TEST_LOCAL_PORT);			//本地端口号
+	printf("[INFO]WIFI_REMOTE_IP_ADDR  = %s\r\n",TEST_REMOTE_IP_ADDR);//目标IP
+	printf("[INFO]WIFI_REMOTE_PORT     = %d\r\n",TEST_REMOTE_PORT);	//目标IP端口号
 	
 	POWER_D = 1;
 	/*step1;initial to HOST*/
@@ -141,12 +142,12 @@ u8 network_init(void)
 		if(retry>10)
 		{
 			printf("[WARNING]Fail M8266WIFI_Module_Init_Via_SPI\r\n");
-			m8266_worksta_flag =0; // 关闭发送数据的指令
-			return 0;
+			m8266_work_state =0; // 关闭发送数据的指令
+			return M8266_ERROR;
 		}
 	}
-	printf("[LOG]M8266WIFI_Module_Init_Via_SPI\r\n");
-	return 1; // 成功
+	printf("[LOG]Succeed M8266WIFI_Module_Init_Via_SPI\r\n");
+	return M8266_SUCCESS; // 成功
 }
 
 
@@ -158,9 +159,12 @@ u8 network_init(void)
 void system_init(void)
 	
 {
+	//test value
+	//u32 now_timea=0;
+	
 	u8 res;
 	u8  m_buf[100];
-	u16 m_value[9];
+	u16 m_value[10];
 	#if SLEEP_MODE
 	u32 now_time;
 	int time_delta;
@@ -169,7 +173,7 @@ void system_init(void)
 	// watchdog_f=0;
 	function_f = 0;  // 任务执行标志清零
 	function_f2 = 0;
-	ec25_on_flag = 1;  // 测试模式
+	ec25_on_flag = 0;  // 测试模式
 	key_on_flag = 0; // 任务执行标志清零
 	led_on_flag = 0;
 
@@ -183,7 +187,7 @@ void system_init(void)
 	#else
 	uart_init(921600); 	// 串口初始化
 	#endif
-	printf("\r\n\r\n\r\n>>>>>>>>>>>>>>systerm start>>>>>>>>>>>>>>\r\n");
+	printf("\r\n\r\n\r\n>>>>>>>>>>>>>>SYSTERM START>>>>>>>>>>>>>>\r\n");
 	
 	KEY_Init();	  		// key init
 	LED_Init();   		// LED init
@@ -222,6 +226,7 @@ void system_init(void)
 		hardwork_min = m_value[6];
 		hardwork_max = m_value[7];
 		max_work_length = m_value[8];
+		wifi_work_on_flag = m_value[9];
 		printf("[LOG]analyze_config_para update finish^^^^^\r\n");
 	}
 	else
@@ -235,6 +240,7 @@ void system_init(void)
 		hardwork_min = TD_C_H_S;
 		hardwork_max = TD_C_H_E;
 		max_work_length = MAX_RUN_TIME;
+		wifi_work_on_flag = WIFI_DEFAULT_WORK;
 		printf("[LOG]None Stored parameters, use default values\r\n");
 	}
 	#endif
@@ -273,8 +279,8 @@ void system_init(void)
 	}
 	// 有效数据
 	STMFLASH_Read(FLASH_SAVE_ADDRC1,(u32 *)&cycle,sizeof(cycle)/4);
-	printf("[INFO]STMFLASH_Read:");
-	printf("*time_stamp:%d\r\n*task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
+	printf("[INFO]STMFLASH_Read:\r\n");
+	printf("\t*time_stamp:%d\r\n\t*task_cnt:%d\r\n",cycle.time_stamp,cycle.task_cnt);
 	// 获取时间
 	now_time = get_time_cnt();
 	time_delta = now_time - cycle.time_stamp;  // 正常时>0,或者now_time+3600- cycle.time_stamp>0 ，否则异常，更新时间戳时间
@@ -347,11 +353,11 @@ void system_init(void)
 	printf("camera_frequency        :%d s\r\n",camera_frequency*sensor_frequency);
 	printf("upload_frequency        :%d s\r\n",upload_frequency*sensor_frequency);
 	printf("transfer_photo_frequency:%d s\r\n",transfer_photo_frequency*sensor_frequency);
-	printf("voltage_fuse_threshold  :%d\r\n",voltage_fuse_threshold);
-	printf("current_fuse_threshold  :%d\r\n",current_fuse_threshold);
-	printf("hardwork_min            :%d\r\n",hardwork_min);
-	printf("hardwork_max            :%d\r\n",hardwork_max);
-	printf("max_work_length         :%d\r\n",max_work_length);
+	printf("voltage_fuse_threshold  :%d mV\r\n",voltage_fuse_threshold);
+	printf("current_fuse_threshold  :%d mA\r\n",current_fuse_threshold);
+	printf("hardwork_min            :%d H\r\n",hardwork_min);
+	printf("hardwork_max            :%d H\r\n",hardwork_max);
+	printf("max_work_length         :%d s\r\n",max_work_length);
 	printf("-------------------------\r\n");
 	
 	Power_Ctrl_Init(); // 电源初始化	
@@ -359,7 +365,9 @@ void system_init(void)
 	#if SENSOR_MODE
 	SHT2x_Init();  			// SHT20初始化
 	max44009_initialize();  // MAX44009初始化
+	#if SESOR_MS5611_ON
 	MS5611_Init();  		// MS5611初始化
+	#endif
 	USART2_init(9600); 		// 电池数据端口初始化
 	Cam_Crtl_Init();   		// 相机控制引脚初始化
 	printf("[LOG]SENSOR init\r\n");
@@ -442,48 +450,54 @@ void system_init(void)
 	printf("[INFO]function=%x\r\n",function_f);
 	//printf("-------------------------\r\n\r\n");
 	#endif
-	IWDG_Feed();//喂狗
-	#define MYTEST 1
-	#if MYTEST
-	network_init();
-	while(1)
-	{
-		static u32 timecount=0;
-		static u32 count=0;
-		u32 delta=0;
-		u32 now_time;
-		now_time = count;
-		delta = now_time - timecount;
-		if(delta%10==0)
-		{
-			printf("now_time=%d,delta=%d\r\n",now_time,delta);
-		}
-		if(delta>=50)
-		{
-			char buf[50];
-			
-//			calendar_get_time(&calendar);
-//			calendar_get_date(&calendar);
-			sprintf(buf,"%d.jpg",now_time);
-			printf("filename:%s\r\n",buf);
 	
-			
-			timecount = count;  // 记录最新的时间
-				
-			//M8266TransportOpen();	//建立链接
-			//WiFiSendPacketBuffer((u8*)buf,1024);
-			//#define	 TEST_FILE_NAME 	"0:pic1.jpg"
-			//WiFiSendFile((u8*)TEST_FILE_NAME);
-			
-			WiFiSendPic("0:pic1.jpg",1); // 发送图片 
-			
-			//WiFiSendFile("0:sensor_wifi.dat",1);		
-		}
-		count++;
+	// WiFi联网
+	if(wifi_work_on_flag ==1)
+	{
+		u8 res=0;
 		IWDG_Feed();//喂狗
-		delay_ms(1000);
+		res = network_init();
+		if(res == M8266_SUCCESS)
+		{
+			m8266_work_state = 1;
+			printf("[LOG]Success access to WiFi\r\n");
+		}
+		else
+		{
+			m8266_work_state = 0;
+			printf("[LOG]Fail access to WiFi\r\n");
+			
+			if(ec25_on_flag ==0)
+			{
+				POWER_D = 0;
+				printf("[INST]Close 4G/WiFi power\r\n");
+			}
+			else
+			{
+				POWER_D = 1;
+				printf("[INST]Open 4G/WiFi power\r\n");
+			}
+		}
 	}
-	#endif
+	
+	IWDG_Feed();//喂狗
+//	while(1)
+//	{
+//		
+//		now_timea++;
+//		if(now_timea%10==0)
+//		{
+//			IWDG_Feed();//喂狗
+//			printf("delta=%d\r\n",now_timea);
+//		}
+//		if(now_timea%20==0)
+//		{
+//			char buf[50];
+//			IWDG_Feed();			
+//			WiFiSendPic("0:pic1.jpg",now_timea); // 发送图片 					
+//		}
+//		delay_ms(1000);
+//	}
 }
 
 
@@ -497,6 +511,7 @@ void system_init(void)
  * 100    不需要更新
  * others 数据异常
  * 例子：600|10800|3600|3600|12500|800|8|15|1200
+ *  第二版 600|10800|3600|3600|12500|800|8|15|1200|0
  */
 u8 analyze_config_para(char *buf, u16 * val)
 {
@@ -518,7 +533,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	offset=0;
 	val[0] = stringtoNum(buf);
 	printf("%02dsensor_frequency        :%d\r\n",offset,val[0]);
-	if(val[0]>10800|| val[0]<60)
+	if(val[0]<60)
 	{
 		printf("[WARNING]analyze_config_para error:val[0]=%d\r\n",val[0]);
 		res=1;
@@ -528,7 +543,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	val[1] = stringtoNum(buf+offset);
 	printf("%02dcamera_frequency        :%d\r\n",offset,val[1]);
 	
-	if(val[1]<val[0] || val[1]>43200)
+	if(val[1]<val[0])
 	{
 		printf("[WARNING]analyze_config_para error:val[1]=%d\r\n",val[1]);
 		res=2;
@@ -537,6 +552,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	offset += locate_character(buf+offset, '|');
 	val[2] = stringtoNum(buf+offset);
 	printf("%02dupload_frequency        :%d\r\n",offset,val[2]);
+	
 	if(val[2]<val[0])
 	{
 		printf("[WARNING]analyze_config_para error:val[2]=%d\r\n",val[2]);
@@ -545,6 +561,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	}
 	offset += locate_character(buf+offset, '|');
 	val[3] = stringtoNum(buf+offset);
+	
 	printf("%02dtransfer_photo_frequency:%d\r\n",offset,val[3]);
 	if(val[3]<val[0])
 	{
@@ -554,13 +571,17 @@ u8 analyze_config_para(char *buf, u16 * val)
 	}
 	offset += locate_character(buf+offset, '|');
 	val[4] = stringtoNum(buf+offset);
+	
 	printf("%02dvoltage_fuse_threshold  :%d\r\n",offset,val[4]);
 	offset += locate_character(buf+offset, '|');
 	val[5] = stringtoNum(buf+offset);
+	
 	printf("%02dcurrent_fuse_threshold  :%d\r\n",offset,val[5]);
 	offset += locate_character(buf+offset, '|');
 	val[6] = stringtoNum(buf+offset);
+	
 	printf("%02dhardwork_min            :%d\r\n",offset,val[6]);
+	
 	if(val[6]>24)
 	{
 		printf("[WARNING]analyze_config_para error:val[6]=%d\r\n",val[6]);
@@ -569,6 +590,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 	}
 	offset += locate_character(buf+offset, '|');
 	val[7] = stringtoNum(buf+offset);
+	
 	printf("%02dhardwork_max            :%d\r\n",offset,val[7]);
 	if(val[7]<=val[6])
 	{
@@ -584,7 +606,14 @@ u8 analyze_config_para(char *buf, u16 * val)
 		printf("[WARNING]analyze_config_para error:val[8]=%d\r\n",val[8]);
 		res=9;
 		goto an_end;
-	}	
+	}
+	offset += locate_character(buf+offset, '|');
+	val[9] = stringtoNum(buf+offset);	
+	if(val[9]>1)
+	{
+		printf("[WARNING]analyze_config_para error:val[9]=%d\r\n",val[9]);
+	}
+	printf("%02dwifi work state         :%d\r\n",offset,val[9]);
 	res=0;
 	an_end:
 	return res;
@@ -821,10 +850,13 @@ void act_scan_camera(void)
 	
 	printf("[LOG]try to scan usb，open camera!\r\n");
 	delay_ms(2000);  // 等待相机稳定
-	#if WIFI_TRANSFORM_ON
-	mf_dcopy("1:DCIM/100IMAGE","0:INBOXWIFI",1,1);  // save
-	mf_scan_files("0:INBOXWIFI");
-	#endif
+	//#if WIFI_TRANSFORM_ON
+	if(wifi_work_on_flag)
+	{
+		mf_dcopy("1:DCIM/100IMAGE","0:INBOXWIFI",1,1);  // save
+		mf_scan_files("0:INBOXWIFI");
+	}
+	//#endif
 	mf_dcopy("1:DCIM/100IMAGE","0:INBOX",1,0);  // don't save
 	mf_scan_files("0:INBOX");
 	mf_scan_files("1:DCIM/100IMAGE");
@@ -1076,21 +1108,27 @@ static void MainTask(void *p_arg) // test fun
 				delay_ms(1000);
 				function_f&=(~0x04);
 				printf("[LOG]finish act_scan_camera, fun:%x~~~~~\r\n",function_f);
-			}			
-		}
-		// 联网成功方可执行
-		if(m8266_worksta_flag==1)
-		{
-			if(function_f&0x40)  // 发送WIFI数据
-			{
-				IWDG_Feed();
-				act_send_picture_wifi();
-				delay_ms(1000);
-				function_f&=(~0x40); 
-				printf("[LOG]finish act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+			}		
+			else if(function_f&0x40)	// 发送WIFI数据
+			{	
+				if(m8266_work_state==1)  
+				{
+					IWDG_Feed();
+					// act_send_picture_wifi();
+					WiFiSendPic((u8*)"0:pic1.jpg",111); // test send one picture.	
+					
+					delay_ms(1000);
+					function_f&=(~0x40); 
+					printf("[LOG]finish act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+				}
+				else
+				{	
+					function_f&=(~0x40); 
+					printf("[LOG]wifi anomaly,skip act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
+				}
 			}
 		}
-		
+		// 联网成功方可执行
 		if(mqtt_state_get() == 1 && !(function_f&0x0F))  // 先执行基础任务再执行发送任务
 		{	
 			if(function_f&0x10)  // 发送传感器
@@ -1431,7 +1469,6 @@ static void MQTTReceiveTask(void *p_arg)
  */
 static void LTEModuleTask(void *p_arg)
 {
-	u8 res2=0;
     OS_ERR err;
 	EC25_ERR res;
     uint16_t time = 0;
@@ -1440,21 +1477,7 @@ static void LTEModuleTask(void *p_arg)
 	
     printf("[TASK]LTEModuleTask run\r\n");
 	delay_ms(500);
-	
-	res2=network_init();
-	if(res2==0) //失败
-	{
-		m8266_worksta_flag=0;
-		function_f&=(~0x40); 
-		// function_f&=(~0x80); 
-		printf("[WARNING]Can't access to WIFI! Close WiFi task\r\n");	
-	}
-	else
-	{
-		m8266_worksta_flag = 1;
-		printf("[LOG]Succeed access to WIFI\r\n");	
-	}
-	
+		
 	res = ec25_Init();  // 初始化4G模组并联网
 	if(res == EC25_ERR_NONE)
 	{ 

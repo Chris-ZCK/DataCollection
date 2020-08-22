@@ -939,7 +939,7 @@ u8 WiFiSendFileRaw(u8 *psrc)
 	u32 total = 0;
 	u32 count = 0;
 
-	PrintProgressBarInit();
+	//PrintProgressBarInit();
 
 	fsrc = (FIL *)mymalloc(SRAMIN, sizeof(FIL));
 	fbuf = (u8 *)mymalloc(SRAMIN, 1024);
@@ -958,16 +958,16 @@ u8 WiFiSendFileRaw(u8 *psrc)
 			total = f_size(fsrc);
 			while (res == 0)
 			{
-				res = f_read(fsrc, fbuf, 1024, (UINT *)&br);
-				// printf("res=%d,br=%d,", res, br);
+				res = f_read(fsrc, fbuf, SEND_DATA_MAX_SIZE, (UINT *)&br);
+				printf("res=%d,br=%d,", res, br);
 				if (res || br == 0)
 				{
 					break;
 				}
 				WiFiSendPacketBuffer(fbuf, br);
 				count += br;
-				// printf("total/count=%d/%d\r\n", total, count);
-				PrintProgressBar(count, total);
+				printf("total/count=%d/%d\r\n", total, count);
+				//PrintProgressBar(count, total);
 			}
 			f_close(fsrc);
 		}
@@ -979,15 +979,14 @@ u8 WiFiSendFileRaw(u8 *psrc)
 	myfree(SRAMIN, fsrc);
 	myfree(SRAMIN, fbuf);
 	
-	PrintProgressBarEnd(count,total);
+	//PrintProgressBarEnd(count,total);
 	printf("[LOG]sensordata_send res=%d\r\n", res);
 	return res;
 }
 
-
+#define	 TEST_FILE_NAME 	"0:pic1.jpg"
 u8 WiFiSendPic(u8 *psrc, u32 myid)
 {
-	u32 count = 0;
 	u8 res;
 	char buf[50];
 
@@ -997,9 +996,14 @@ u8 WiFiSendPic(u8 *psrc, u32 myid)
 		printf("[WARNING]Fail M8266TransportOpen\r\n");
 		return M8266_ERROR;
 	}
-	sprintf(buf,"%d.dat",myid);
-	WiFiSendPacketBuffer((u8*)buf,1024);  // 发送名字
-	WiFiSendFileRaw(psrc);  // 发送图片
+	sprintf(buf,"%d.jpg",myid);
+	printf("[INFO]WiFi send picture name id:%s\r\n",buf);
+	WiFiSendPacketBuffer((u8*)buf,SEND_DATA_MAX_SIZE);  // 发送名字
+	#if TEST_WIFI_SENDING_ON
+	WiFiSendFileRaw(TEST_FILE_NAME);  // 发送图片
+	#else
+	WiFiSendFileRaw(psrc);  // 发送图片TEST_FILE_NAME
+	#endif
 	res = M8266TransportCLose();
 	if(res == M8266_ERROR)
 	{
@@ -1012,7 +1016,6 @@ u8 WiFiSendPic(u8 *psrc, u32 myid)
 
 u8 WiFiSendFile(u8 *psrc, u32 myid)
 {
-	u32 count = 0;
 	u8 res;
 	char buf[50];
 
@@ -1022,8 +1025,8 @@ u8 WiFiSendFile(u8 *psrc, u32 myid)
 		printf("[WARNING]Fail M8266TransportOpen\r\n");
 		return M8266_ERROR;
 	}
-	sprintf(buf,"%d.jpg",myid);
-	WiFiSendPacketBuffer((u8*)buf,1024);  // 发送名字
+	sprintf(buf,"%d.dat",myid);
+	WiFiSendPacketBuffer((u8*)buf,SEND_DATA_MAX_SIZE);  // 发送名字
 	WiFiSendFileRaw(psrc);  // 发送图片
 	res = M8266TransportCLose();
 	if(res == M8266_ERROR)
