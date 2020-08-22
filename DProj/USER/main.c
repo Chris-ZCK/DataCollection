@@ -203,7 +203,7 @@ void system_init(void)
 	
 	calendar_get_time(&calendar);
 	calendar_get_date(&calendar);
-	printf("Timestamp:%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+	printf("[TIME]%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
     
 	// local_time_cnt = calendar.sec;  // 用于看门狗统计
 	
@@ -1493,7 +1493,6 @@ static void LTEModuleTask(void *p_arg)
 	
 	// init M8266
 	IWDG_Feed();//喂狗
-	network_init();
 	
     while (1)
 	{    // ? 这里的重连可能与发送时候的重连冲突    

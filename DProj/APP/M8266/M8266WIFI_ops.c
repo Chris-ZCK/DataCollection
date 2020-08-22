@@ -598,7 +598,8 @@ u16 WiFiSendPacketBuffer(u8* buf, u16 buflen)
 			else // 0x10, 0x11 here may due to spi failure during sending, and normally packet has been sent partially, i.e. sent!=0
 			{
 				// do some work here
-				printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				// printf("[WARNING]There are some Unknown errors! status:%4x\r\n",status);
+				printf("[WARN:%4X]",status);
 				goto exit;
 			}
 			

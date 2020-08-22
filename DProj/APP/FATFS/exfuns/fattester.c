@@ -647,7 +647,7 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode, u8 if_save)
 	//u16 id_in_flash; // #special
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);
 	//printf("[INFO]STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
-	printf("[INFO]STMFLASH_Read|pic_id=%d\r\n",eerom.id_in_flash);
+	printf("\r\n[INFO]STMFLASH_Read|pic_id=%d\r\n",eerom.id_in_flash);
 	//eerom.id_in_flash = STMFLASH_Read_Num(FLASH_SAVE_ADDR); // ##special
 	//id_in_flash = STMFLASH_Read_Num(FLASH_SAVE_ADDR); // ##special
 	srcdir = (DIR *)mymalloc(SRAMIN, sizeof(DIR)); // 申请内存
@@ -881,17 +881,17 @@ u8 mf_log_init(void)
 			{
 				printf("\r\n##################sd log data###############\r\n");
 				//printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n");
-				printf("Start logging the log data and write to file log.dat\r\n");
+				printf("[LOG]Start logging the log data and write to file log.dat\r\n");
 				calendar_get_time(&calendar);
 				calendar_get_date(&calendar);
-				printf("Timestamp:%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
+				printf("[TIME]%d/%d/%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);
 				send_log_flag++;
 			}
 			else
 			{
 				printf("******************sd log data***************\r\n");
-				printf("*****************************************\r\n");
-				printf("*info:mf_log_init,time:%d\r\n" ,send_log_flag);
+				//printf("*****************************************\r\n");
+				printf("[INFO]mf_log_init,time:%d\r\n" ,send_log_flag);
 			}
 		}
 		
@@ -899,27 +899,27 @@ u8 mf_log_init(void)
 	else
 	{
 		sd_ready_flag =0;
-		printf("ERROR:mf_log_init|res=%d\r\n",res);
+		printf("[WARNING]mf_log_init|res=%d\r\n",res);
 	}
 	return res;
 }
 void mf_send_log(void)
 {
 	MY_MQTT_ERR res;
-	F407USART1_SendString("->\r\n$act:mf_send_log...\r\n");
+	F407USART1_SendString("[INST]act:mf_send_log...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
-	printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n");
+	printf("[LOG]^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n");
 	mf_close();
 	res = mysend_picture((u8*)LOG_DATA_PATH,0);
 	if(res == MY_MQTT_ERR_NONE)
 	{
 		mf_unlink((u8*)LOG_DATA_PATH);	
-		printf("*Succeed send log file\r\n");
+		printf("[LOG]Succeed send log file\r\n");
 	}
 	else
 	{
-		printf("*!fail send log file\r\n");
+		printf("[WARNING]Fail send log file\r\n");
 	}
 	mf_log_init(); // 重新启动log记录
 }
@@ -956,17 +956,20 @@ u8 WiFiSendFileRaw(u8 *psrc)
 		if (res == 0)
 		{
 			total = f_size(fsrc);
+			printf("[INFO]WiFiSendFile:%s\r\n",psrc);
+			printf("[INFO]File size:%d\r\n",total);
 			while (res == 0)
 			{
 				res = f_read(fsrc, fbuf, SEND_DATA_MAX_SIZE, (UINT *)&br);
-				printf("res=%d,br=%d,", res, br);
+				printf("[INFO]send=%d,packet=%d,", res, br);
 				if (res || br == 0)
 				{
 					break;
 				}
 				WiFiSendPacketBuffer(fbuf, br);
 				count += br;
-				printf("total/count=%d/%d\r\n", total, count);
+				
+				printf("count=%d/total=%d[%2.2f%%]\r\n", total, count, (float)count*100/total);
 				//PrintProgressBar(count, total);
 			}
 			f_close(fsrc);
@@ -980,7 +983,7 @@ u8 WiFiSendFileRaw(u8 *psrc)
 	myfree(SRAMIN, fbuf);
 	
 	//PrintProgressBarEnd(count,total);
-	printf("[LOG]sensordata_send res=%d\r\n", res);
+	printf("[LOG]WiFiSendFile count=%d/total=%d[%2.2f%%]\r\n", total, count, (float)count*100/total);
 	return res;
 }
 
@@ -1040,12 +1043,12 @@ u8 WiFiSendFile(u8 *psrc, u32 myid)
 
 void mf_config_data_write_flash(u8 *data)
 {
-	printf("*mf_config_data_write_flash\r\n");
+	printf("[LOG]mf_config_data_write_flash\r\n");
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4);  // 先读出原来存的内容，实际上是保存pic id
-	printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+	printf("[INFO]STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 	strcpy((char*)eerom.buf,(const char *)data);									 // 再将有效的数据写入到buf
 	STMFLASH_Write(FLASH_SAVE_ADDR,(u32 *)&eerom,sizeof(eerom)/4); // 最后保存
-	printf("*info:STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
+	printf("[INFO]STMFLASH_Write|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 }
 
 
