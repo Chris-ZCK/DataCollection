@@ -809,6 +809,7 @@ u8 sensordata_write(u8 *pdst, u8 *data)
 u8 sensordata_send(u8 *psrc)
 {
     u8 res;
+	u32 total;
     //u16 br = 0;
     //u16 bw = 0;
     FIL *fsrc = 0;
@@ -828,6 +829,9 @@ u8 sensordata_send(u8 *psrc)
         res = f_open(fsrc, (const TCHAR *)psrc, FA_READ | FA_OPEN_EXISTING);
         if (res == 0)
         {
+			total = f_size(fsrc);
+			printf("[INFO]sensordata_send:%s\r\n",psrc);
+			printf("[INFO]File size:%d\r\n",total);
 			// 按行获取所有的待读数据
 			while(f_gets((TCHAR*)fbuf, 512, fsrc))
 			{
@@ -1059,6 +1063,12 @@ u8 mf_WiFiSendFile(u8 *psrc)
 	return M8266_SUCCESS;
 }
 
+u8 mf_sensordata_send_wifi(void)
+{
+	return mf_WiFiSendFile((u8*)SENSOR_DATA_WIFI_PATH);
+	//return mf_WiFiSendFile((u8*)SENSOR_DATA_WIFI_PATH);
+}
+
 
 void mf_config_data_write_flash(u8 *data)
 {
@@ -1085,4 +1095,40 @@ void mf_config_data_read_flash(u8 *fbuf)
 	//printf("*info:STMFLASH_Read|pic_id=%d,buf={%s}\r\n",eerom.id_in_flash,eerom.buf);
 	printf("*info:STMFLASH_Read|pic_id=%d\r\n",eerom.id_in_flash);
 	strcpy((char*)fbuf,(const char *)eerom.buf);
+}
+
+
+/**
+ * @description: 发送图片
+ * @param {type} 
+ * @return {type} 
+ */
+u8 act_send_picture(void)
+{
+	F407USART1_SendString("[INST]act:act_send_picture...\r\n");
+	delay_ms(1000);
+	delay_ms(1000);
+	delay_ms(1000);	
+	printf("[INFO]mf_scan_files-B: \r\n");
+	mf_scan_files("0:INBOX");  // 扫描文件夹
+	mf_send_pics("0:INBOX","0:ARCH",1,0);  // 发送图片
+	printf("[INFO]mf_scan_files-A\r\n");
+	mf_scan_files("0:INBOX");  // 扫描文件架
+	return 1;
+}
+
+u8 act_send_picture_wifi(void)
+{
+	F407USART1_SendString("[INST]act:act_send_picture_wifi...\r\n");
+	delay_ms(1000);
+	delay_ms(1000);
+	delay_ms(1000);	
+	
+	WiFiSendPic((u8*)"0:pic1.jpg"); // test send one picture.();
+//	printf("[INFO]mf_scan_files-B: \r\n");
+//	mf_scan_files("0:INBOXWIFI");  // 扫描文件夹
+//	mf_send_pics("0:INBOXWIFI","0:ARCH",1,1);  // 发送图片
+//	printf("[INFO]mf_scan_files-A\r\n");
+//	mf_scan_files("0:INBOXWIFI");  // 扫描文件架
+	return 1;
 }

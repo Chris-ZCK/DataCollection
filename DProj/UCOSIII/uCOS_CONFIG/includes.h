@@ -302,7 +302,7 @@ extern struct flash_package eerom;
 #define	 SENSOR_DATA_WIFI_PATH 	"0:sensor_wifi.dat"
 
 extern char MY_TOPIC[15];
-
+extern vu16 wifi_work_on_flag;
 extern	vu16 function_f;
 u8 analyze_config_para(char *buf, u16 * val);
 #endif

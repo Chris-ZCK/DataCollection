@@ -52,9 +52,13 @@ void mf_send_log(void);
 extern u8 sd_ready_flag;
 void mf_check_dir(u8* path);
 
-u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve);
+//u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve);
 u8 WiFiSendPic(u8 *psrc);
-u8 mf_WiFiSendFile(u8 *psrc);
+//u8 mf_WiFiSendFile(u8 *psrc);
+u8 mf_sensordata_send_wifi(void);
+
+u8 act_send_picture(void);
+u8 act_send_picture_wifi(void);
 #endif
 
 

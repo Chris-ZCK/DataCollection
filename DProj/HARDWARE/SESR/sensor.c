@@ -164,18 +164,31 @@ void act_get_data(void)
 	delay_ms(1000);
 	// LED_YELLOW_OFF();
 	Data_Packing_sens((char *)bufmessages);
+	if(wifi_work_on_flag)
+	{
+		mf_sensordata_write(bufmessages,1);  // ´æµ½sd-wifi¿¨
+		F407USART1_SendString("[INFO]]mf_sensordata_write into wifi file\r\n");
+	}
 	mf_sensordata_write(bufmessages,0);  // ´æµ½sd¿¨
-	mf_sensordata_write(bufmessages,1);  // ´æµ½sd-wifi¿¨
+	F407USART1_SendString("[INFO]]mf_sensordata_write into sd file\r\n");
 }
 
 // send sensor data
 u8 act_send_data(void)
 {
-	LED_YELLOW_ON();
 	F407USART1_SendString("[INST]act:act_send_data...\r\n");
 	delay_ms(1000);
 	delay_ms(1000);
-	LED_YELLOW_OFF();
 	mf_sensordata_send();
+	return 1;
+}
+
+// send sensor data by wifi
+u8 act_send_data_wifi(void)
+{
+	F407USART1_SendString("[INST]act:act_send_data_wifi...\r\n");
+	delay_ms(1000);
+	delay_ms(1000);
+	mf_sensordata_send_wifi();
 	return 1;
 }

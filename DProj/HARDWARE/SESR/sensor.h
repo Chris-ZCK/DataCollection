@@ -7,4 +7,5 @@
 void Data_Packing_sens(char *msg);
 void act_get_data(void);
 u8 act_send_data(void);
+u8 act_send_data_wifi(void);
 #endif
