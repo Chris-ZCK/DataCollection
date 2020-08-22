@@ -168,7 +168,7 @@ extern struct flash_package eerom;
 
 #if TEST_PARA
 // Sys cycle, unit:s
-#define CYCLE_TIME 		180
+#define CYCLE_TIME 		120
 
 // store photo, unit:s
 #define TASK_S_P_CNT	  CYCLE_TIME*2

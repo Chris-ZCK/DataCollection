@@ -191,12 +191,7 @@ void system_init(void)
 	
 	KEY_Init();	  		// key init
 	LED_Init();   		// LED init
-	rng_Init();			// 随机数生成器初始化
-	mqtt_UID_set();     // 生成唯一id
 	
-	InitQueue(&Q_stage);  	// 初始化队列 
-	InitQueue(&Q_resent);  	// 初始化队列 	
-		
 	IWDG_Init(IWDG_Prescaler_256,4000);  // 4,000*256/32,000=32s
 	
 	My_RTC_Init();  //初始化RTC
@@ -329,6 +324,12 @@ void system_init(void)
 	exfuns_init();           // 为fatfs相关变量申请内存
 	f_mount(fs[0], "0:", 1); // 挂载SD卡
 	
+	// mqtt相关
+	rng_Init();			// 随机数生成器初始化
+	mqtt_UID_set();     // 生成唯一id
+	InitQueue(&Q_stage);  	// 初始化队列 
+	InitQueue(&Q_resent);  	// 初始化队列 	
+	
 	#if EN_LOG_PRINT > 2
 	mf_scan_files((u8*)"0:");
 	mf_check_dir((u8*)"0:INBOXWIFI");
@@ -358,6 +359,7 @@ void system_init(void)
 	printf("[INFO]hardwork_min            :%d H\r\n",hardwork_min);
 	printf("[INFO]hardwork_max            :%d H\r\n",hardwork_max);
 	printf("[INFO]max_work_length         :%d s\r\n",max_work_length);
+	printf("[INFO]wifi_work_on_flag       :%d s\r\n",wifi_work_on_flag);
 	printf("[INFO]-------------------------\r\n");
 	
 	Power_Ctrl_Init(); // 电源初始化	
@@ -377,26 +379,28 @@ void system_init(void)
 	// 任务解析部分想要重新加进来，当下的过于死板
 	// 任务解析
 	printf("[LOG]Task analysis...........\r\n");
-	printf("[INFO]task count:%d\r\n", cycle.task_cnt);
-	
+	printf("[INFO]Task count:%d\r\n", cycle.task_cnt);
+	printf("[INFO]Task list:");
 	function_f|=(0x01);  // 获取数据
-	printf("[INFO]get data\r\n");
+	printf("\tget data\r\n");
 
+	function_f|=(0x40);  // 打开WiFi
+	printf("\topen wifi and send data\r\n");
 	if(cycle.task_cnt%camera_frequency==0 || key_on_flag) 
 	{
 		function_f|=(0x02);  // 拍照
-		printf("[INFO]take photo\r\n");		
+		printf("\ttake photo\r\n");		
 	}
 	if(cycle.task_cnt%transfer_photo_frequency==0 || key_on_flag) 
 	{
 		function_f|=(0x04);  // 转存照片	
-		printf("[INFO]store photo\r\n");
+		printf("\tstore photo\r\n");
 	}
 	
 	if(cycle.task_cnt%upload_frequency==0 || key_on_flag)  // 发送数据
 	{
 		
-		printf("[LOG]try to send data\r\n");
+		printf("\tttry to send data by 4g\r\n");
 		
 		#if QUEERY_BATTERY_ON
 		{
@@ -443,8 +447,6 @@ void system_init(void)
 			printf("[INFO]send data\r\n");
 			function_f|=(0x20);  // 发送图片
 			printf("[INFO]end photo\r\n");	
-			function_f|=(0x40);  // 发送数据	
-			printf("[INFO]send photo by wifi\r\n");
 		}			
 	}
 	printf("[INFO]function=%x\r\n",function_f);
@@ -598,6 +600,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 		res=8;
 		goto an_end;
 	}
+	
 	offset += locate_character(buf+offset, '|');
 	val[8] = stringtoNum(buf+offset);	
 	printf("%02dmax_work_length         :%d\r\n",offset,val[8]);
@@ -607,6 +610,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 		res=9;
 		goto an_end;
 	}
+	
 	offset += locate_character(buf+offset, '|');
 	val[9] = stringtoNum(buf+offset);	
 	if(val[9]>1)
@@ -855,6 +859,10 @@ void act_scan_camera(void)
 	{
 		mf_dcopy("1:DCIM/100IMAGE","0:INBOXWIFI",1,1);  // save
 		mf_scan_files("0:INBOXWIFI");
+	}
+	else
+	{
+		printf("[LOG]wifi_work_on_flag=%d, WIFI no need to mf_dcopy\r\n", wifi_work_on_flag);
 	}
 	//#endif
 	mf_dcopy("1:DCIM/100IMAGE","0:INBOX",1,0);  // don't save
