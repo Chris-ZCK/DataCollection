@@ -408,7 +408,6 @@ u32 srt2integer_pro(u8 *str)
  * @return num of files
  * @note  max 20
  */
-#define MAX_TRANSFORM_SINGLE 6
 u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode, u8 device)
 {
 	#define MAX_PATHNAME_DEPTH 100 + 1 //最大目标文件路径+文件名深度
@@ -463,7 +462,7 @@ u8 mf_send_pics(u8 *psrc, u8 *pdst, u8 fwmode, u8 device)
                 while (res == 0)   // 开始复制文件夹里面的东东
                 {
                     res = f_readdir(srcdir, finfo);  // 读取目录下的一个文件
-                    if (res != FR_OK || finfo->fname[0] == 0 || cnt > MAX_TRANSFORM_SINGLE)
+                    if (res != FR_OK || finfo->fname[0] == 0 || cnt >= MAX_TRANSFORM_SINGLE)
                     {
                         break;
                     } // 错误了/到末尾了,退出
@@ -617,7 +616,7 @@ u8* get_src_dname(u8* dpfn)
 }
 
 
-#define MAX_COYP_SINGLE 6
+
 // 文件夹复制
 // 将psrc文件夹,copy到pdst文件夹.
 // pdst:必须形如"X:"/"X:XX"/"X:XX/XX"之类的.而且要实现确认上一级文件夹存在
@@ -990,7 +989,6 @@ u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve)
 	myfree(SRAMIN, fbuf);
 	
 	//PrintProgressBarEnd(count,total);
-	printf("count=%d/total=%d[%2.2f%%]\r\n", total, count, (float)count*100/total);
 	printf("[LOG]WiFiSendFile count=%d/total=%d[%2.2f%%]\r\n", total, count, (float)count*100/total);
 	return res;
 }

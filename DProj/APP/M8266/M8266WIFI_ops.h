@@ -24,21 +24,7 @@
 #define _M8266WIFI_OPS_H_
 #include "sys.h" 
 
-#define WIFI_NO 0
-#if WIFI_NO == 1
-//#define TARGET_SSID			"@PHICOMM_28"
-//#define TARGET_PASSWORD		"12345678"
-#define TARGET_SSID				"zkyxby"
-#define TARGET_PASSWORD			"12345678"
-#define TEST_REMOTE_IP_ADDR     "10.10.10.100"
-#define TEST_REMOTE_PORT        5555
-#else
-#define TARGET_SSID			"wynjd8802"
-#define TARGET_PASSWORD		""
-#define TEST_REMOTE_IP_ADDR   	"192.168.1.101"
-#define TEST_REMOTE_PORT        8000
 
-#endif
 
 
 // SETINGS

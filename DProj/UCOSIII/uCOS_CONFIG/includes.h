@@ -168,12 +168,12 @@ extern struct flash_package eerom;
 
 #if TEST_PARA
 // Sys cycle, unit:s
-#define CYCLE_TIME 		120
+#define CYCLE_TIME 		60
 
 // store photo, unit:s
-#define TASK_S_P_CNT	  CYCLE_TIME*2
+#define TASK_S_P_CNT	 	CYCLE_TIME*3
 // send data, unit:s
-#define TASK_S_D_CNT    CYCLE_TIME*2
+#define TASK_S_D_CNT    	CYCLE_TIME*3
 // take photo, unit:s
 #define TASK_T_P_CNT		CYCLE_TIME*10
 
@@ -301,6 +301,7 @@ extern struct flash_package eerom;
 #define	 SENSOR_DATA_PATH 	"0:sensor.dat"
 #define	 SENSOR_DATA_WIFI_PATH 	"0:sensor_wifi.dat"
 
+// pic 地址
 #define SD_SIMULATION_CAMEAR 1
 #if SD_SIMULATION_CAMEAR
 #define  SOURCE_OF_PICTURE_PATH "0:DCIM/100IMAGE"
@@ -309,6 +310,27 @@ extern struct flash_package eerom;
 #endif
 #define  SOURCE_OF_PICTURE_SD_PATH "0:INBOX"
 #define  SOURCE_OF_PICTURE_WIFI_PATH "0:INBOXWIFI"
+
+// 最大转存数量
+#define MAX_COYP_SINGLE 2
+// 最大发送图片数量
+#define MAX_TRANSFORM_SINGLE 2
+
+#define TEST_WIFI_SERVER 0
+#if TEST_WIFI_SERVER == 0
+//#define TARGET_SSID			"@PHICOMM_28"
+//#define TARGET_PASSWORD		"12345678"
+#define TARGET_SSID				"zkyxby"
+#define TARGET_PASSWORD			"12345678"
+#define TEST_REMOTE_IP_ADDR     "10.10.10.100"
+#define TEST_REMOTE_PORT        5555
+#else
+#define TARGET_SSID			"wynjd8802"
+#define TARGET_PASSWORD		""
+#define TEST_REMOTE_IP_ADDR   	"192.168.1.101"
+#define TEST_REMOTE_PORT        8000
+
+#endif
 
 extern char MY_TOPIC[15];
 extern vu16 wifi_work_on_flag;

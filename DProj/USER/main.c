@@ -553,6 +553,8 @@ u8 analyze_config_para(char *buf, u16 * val)
 	}
 	// 分析控制参数
 	printf("[LOG]analyze_config_para .......\r\n");
+	
+	// 0 采集频率
 	offset=0;
 	val[0] = stringtoNum(buf);
 	printf("%02dsensor_frequency        :%d\r\n",offset,val[0]);
@@ -562,29 +564,32 @@ u8 analyze_config_para(char *buf, u16 * val)
 		res=1;
 		goto an_end;
 	}	
+	
+	// 1 转存频率
 	offset += locate_character(buf+offset, '|');
 	val[1] = stringtoNum(buf+offset);
 	printf("%02dcamera_frequency        :%d\r\n",offset,val[1]);
-	
 	if(val[1]<val[0])
 	{
 		printf("[WARNING]analyze_config_para error:val[1]=%d\r\n",val[1]);
 		res=2;
 		goto an_end;
 	}
+	
+	// 2 上传频率
 	offset += locate_character(buf+offset, '|');
 	val[2] = stringtoNum(buf+offset);
 	printf("%02dupload_frequency        :%d\r\n",offset,val[2]);
-	
 	if(val[2]<val[0])
 	{
 		printf("[WARNING]analyze_config_para error:val[2]=%d\r\n",val[2]);
 		res=3;
 		goto an_end;
 	}
+	
+	// 3 拍照频率
 	offset += locate_character(buf+offset, '|');
 	val[3] = stringtoNum(buf+offset);
-	
 	printf("%02dtransfer_photo_frequency:%d\r\n",offset,val[3]);
 	if(val[3]<val[0])
 	{
@@ -592,28 +597,31 @@ u8 analyze_config_para(char *buf, u16 * val)
 		res=4;
 		goto an_end;
 	}
+	
+	// 4 熔断电压
 	offset += locate_character(buf+offset, '|');
 	val[4] = stringtoNum(buf+offset);
-	
 	printf("%02dvoltage_fuse_threshold  :%d\r\n",offset,val[4]);
+	
+	// 5 熔断电流
 	offset += locate_character(buf+offset, '|');
 	val[5] = stringtoNum(buf+offset);
-	
 	printf("%02dcurrent_fuse_threshold  :%d\r\n",offset,val[5]);
+	
+	// 6 起始时间
 	offset += locate_character(buf+offset, '|');
 	val[6] = stringtoNum(buf+offset);
-	
 	printf("%02dhardwork_min            :%d\r\n",offset,val[6]);
-	
-	if(val[6]>24)
+	if(val[6]>=23)
 	{
 		printf("[WARNING]analyze_config_para error:val[6]=%d\r\n",val[6]);
 		res=7;
 		goto an_end;
 	}
+	
+	// 7 关闭时间
 	offset += locate_character(buf+offset, '|');
 	val[7] = stringtoNum(buf+offset);
-	
 	printf("%02dhardwork_max            :%d\r\n",offset,val[7]);
 	if(val[7]<=val[6])
 	{
@@ -622,6 +630,7 @@ u8 analyze_config_para(char *buf, u16 * val)
 		goto an_end;
 	}
 	
+	// 8 最长工作时间
 	offset += locate_character(buf+offset, '|');
 	val[8] = stringtoNum(buf+offset);	
 	printf("%02dmax_work_length         :%d\r\n",offset,val[8]);
@@ -632,13 +641,15 @@ u8 analyze_config_para(char *buf, u16 * val)
 		goto an_end;
 	}
 	
+	// 9 WiFi开关
 	offset += locate_character(buf+offset, '|');
 	val[9] = stringtoNum(buf+offset);	
+	printf("%02dwifi work state         :%d\r\n",offset,val[9]);
 	if(val[9]>1)
 	{
 		printf("[WARNING]analyze_config_para error:val[9]=%d\r\n",val[9]);
+		goto an_end;
 	}
-	printf("%02dwifi work state         :%d\r\n",offset,val[9]);
 	res=0;
 	an_end:
 	return res;
