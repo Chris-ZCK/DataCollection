@@ -139,7 +139,7 @@ u8 network_init(void)
 			M8266WIFI_Module_delay_ms(250);
 			M8266WIFI_Module_delay_ms(250);
 		}
-		if(retry>M8266_CNT_RETRY_TIME)
+		if(retry>=M8266_CNT_RETRY_TIME)
 		{
 			printf("[WARNING]Fail M8266WIFI_Module_Init_Via_SPI\r\n");
 			m8266_work_state =0; // 关闭发送数据的指令
@@ -929,11 +929,13 @@ void act_take_photo(void)
 	// 判断相机状态,如果相机处于连接状态，则跳过
 	F407USART1_SendString("[INST]act:act_take_photo...\r\n");
 	delay_ms(1000);
-	// delay_ms(1000);
+	delay_ms(1000);
 	// LED_YELLOW_OFF();
 	if(usbConnectSwitchGet() == 0)
 	{
 		USB_Photograph();
+		delay_ms(1000);
+		delay_ms(1000);
 	}
 	else
 	{
@@ -1101,7 +1103,10 @@ static void MainTask(void *p_arg) // test fun
 			else if(function_f&0x02 )  // 拍照
 			{
 				IWDG_Feed();
+				delay_ms(1000);
 				act_take_photo();
+				delay_ms(1000);
+				delay_ms(1000);
 				delay_ms(1000);
 				function_f&=(~0x02);
 				printf("[LOG]finish act_take_photo, fun:%x\r\n",function_f);

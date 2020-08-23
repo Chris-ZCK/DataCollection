@@ -82,7 +82,7 @@ void USB_Photograph(void)
 {
 	USB_TP = 1;
 	printf("[LOG]едиЦ...\r\n");
-	delay_ms(500);
+	delay_ms(900);
 	USB_TP = 0;
 	printf("[LOG]ing .....\r\n");
 }

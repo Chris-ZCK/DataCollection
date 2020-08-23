@@ -353,7 +353,7 @@ EC25_ERR ec25_TCPConnect(char *ip, uint16_t port)
 		} // maxium wait 40s
 		printf("[LOG]Try open connect|{(if i>3)i=%d}\r\n",i);
 	}
-	//ec25_SynLocalTime();
+	//ec25_SynLocalTime();f
 	return EC25_ERR_NONE;
 }
 /**

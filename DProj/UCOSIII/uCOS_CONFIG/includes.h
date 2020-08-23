@@ -323,10 +323,10 @@ extern struct flash_package eerom;
 
 #define TEST_WIFI_SERVER 0
 #if TEST_WIFI_SERVER == 0
-#define TARGET_SSID			"@PHICOMM_28"
-#define TARGET_PASSWORD		"12345678"
-//#define TARGET_SSID				"zkyxby"
-//#define TARGET_PASSWORD			"12345678"
+//#define TARGET_SSID			"@PHICOMM_28"
+//#define TARGET_PASSWORD		"12345678"
+#define TARGET_SSID				"zkyxby"
+#define TARGET_PASSWORD			"12345678"
 #define TEST_REMOTE_IP_ADDR     "10.10.10.100"
 #define TEST_REMOTE_PORT        5555
 #else
