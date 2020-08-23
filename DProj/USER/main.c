@@ -139,7 +139,7 @@ u8 network_init(void)
 			M8266WIFI_Module_delay_ms(250);
 			M8266WIFI_Module_delay_ms(250);
 		}
-		if(retry>10)
+		if(retry>M8266_CNT_RETRY_TIME)
 		{
 			printf("[WARNING]Fail M8266WIFI_Module_Init_Via_SPI\r\n");
 			m8266_work_state =0; // 关闭发送数据的指令
