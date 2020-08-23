@@ -385,7 +385,7 @@ MY_MQTT_ERR check_Queue(uint8_t *pic_buff, uint32_t pic_bufflen,	// 单个图片分包
 			res = f_open(&fl_in, (const char *)file_path, FA_OPEN_EXISTING | FA_READ);
 			if (res != FR_OK)
 			{
-				get_resent_path((uint8_t *)"0:INBOX", file_path, elem.pic_id); //获取文件的地址
+				get_resent_path((u8*)SOURCE_OF_PICTURE_SD_PATH, file_path, elem.pic_id); //获取文件的地址
 				file_path[20] = 0;
 				// printf("resent picture path:%s \r\n", file_path);
 				res = f_open(&fl_in, (const char *)file_path, FA_OPEN_EXISTING | FA_READ);

@@ -332,8 +332,8 @@ void system_init(void)
 	
 	#if EN_LOG_PRINT > 2
 	mf_scan_files((u8*)"0:");
-	mf_check_dir((u8*)"0:INBOXWIFI");
-	mf_check_dir((u8*)"0:INBOX");
+	mf_check_dir((u8*)SOURCE_OF_PICTURE_WIFI_PATH);
+	mf_check_dir((u8*)SOURCE_OF_PICTURE_SD_PATH);
 	mf_check_dir((u8*)"0:ARCH");
 	#endif
 
@@ -878,17 +878,17 @@ void act_scan_camera(void)
 	//#if WIFI_TRANSFORM_ON
 	if(wifi_work_on_flag)
 	{
-		mf_dcopy("1:DCIM/100IMAGE","0:INBOXWIFI",1,1);  // save
-		mf_scan_files("0:INBOXWIFI");
+		mf_dcopy((u8*)SOURCE_OF_PICTURE_PATH,(u8*)SOURCE_OF_PICTURE_WIFI_PATH,1,1);  // reserve
+		mf_scan_files((u8*)SOURCE_OF_PICTURE_WIFI_PATH);
 	}
 	else
 	{
 		printf("[LOG]wifi_work_on_flag=%d, WIFI no need to mf_dcopy\r\n", wifi_work_on_flag);
 	}
 	//#endif
-	mf_dcopy("1:DCIM/100IMAGE","0:INBOX",1,0);  // don't save
-	mf_scan_files("0:INBOX");
-	mf_scan_files("1:DCIM/100IMAGE");
+	mf_dcopy((u8*)SOURCE_OF_PICTURE_PATH,(u8*)SOURCE_OF_PICTURE_SD_PATH,1,0);  // don't save
+	mf_scan_files((u8*)SOURCE_OF_PICTURE_SD_PATH);
+	mf_scan_files((u8*)SOURCE_OF_PICTURE_PATH);
 	closeUSB();  // close usb power
 	IWDG_Feed();
 	res = waitUsbDisonnectFlag(5000);
@@ -1140,6 +1140,7 @@ static void MainTask(void *p_arg) // test fun
 				{	
 					function_f&=(~0x08); 
 					printf("[LOG]wifi anomaly,skip act_send_data_wifi, fun:%x~~~~~\r\n",function_f);
+					printf("[LOG]wifi anomaly,skip act_send_picture_wifi, fun:%x~~~~~\r\n",function_f);
 				}
 			}
 //			else if(function_f&0x40)	// ·¢ËÍWIFIÊý¾Ý

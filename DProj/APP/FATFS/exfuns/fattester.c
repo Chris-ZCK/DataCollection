@@ -688,7 +688,7 @@ u8 mf_dcopy(u8 *psrc, u8 *pdst, u8 fwmode, u8 if_save)
                 {
 					IWDG_Feed();
                     res = f_readdir(srcdir, finfo); // ¶ÁÈ¡Ä¿Â¼ÏÂµÄÒ»¸öÎÄ¼þ
-                    if (res != FR_OK || finfo->fname[0] == 0 || cnt>MAX_COYP_SINGLE)
+                    if (res != FR_OK || finfo->fname[0] == 0 || cnt>=MAX_COYP_SINGLE)
                     {
                         break;
                     } // ´íÎóÁË/µ½Ä©Î²ÁË,ÍË³ö
@@ -961,12 +961,12 @@ u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve)
 			printf("[INFO]File size:%d\r\n",total);
 			while (res == 0)
 			{
-				res = f_read(fsrc, fbuf, SEND_DATA_MAX_SIZE, (UINT *)&br);
-				printf("[INFO]send=%d,packet=%d,", res, br);
+				res = f_read(fsrc, fbuf, SEND_DATA_MAX_SIZE, (UINT *)&br);				
 				if (res || br == 0)
 				{
 					break;
 				}
+				printf("[INFO]send=%d,packet=%d,", res, br);
 				WiFiSendPacketBuffer(fbuf, br);
 				count += br;
 				
@@ -977,7 +977,7 @@ u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve)
 			if(if_reserve==0)
 			{
 				f_unlink((const char*)psrc);  // delet sent data
-				printf("[INFO]rm file:%s\r\n",psrc);
+				printf("[INFO]WiFiSendFileRaw rm file:%s\r\n",psrc);
 			}
 		}
 		else
@@ -990,6 +990,7 @@ u8 WiFiSendFileRaw(u8 *psrc, u8 if_reserve)
 	myfree(SRAMIN, fbuf);
 	
 	//PrintProgressBarEnd(count,total);
+	printf("count=%d/total=%d[%2.2f%%]\r\n", total, count, (float)count*100/total);
 	printf("[LOG]WiFiSendFile count=%d/total=%d[%2.2f%%]\r\n", total, count, (float)count*100/total);
 	return res;
 }
@@ -1024,10 +1025,10 @@ u8 WiFiSendPic(u8 *psrc)
 	if(res == M8266_ERROR)
 	{
 		printf("[WARNING]Fail M8266TransportOpen\r\n");
-		return M8266_ERROR;
+		return 1;
 	}
 	
-	return M8266_SUCCESS;
+	return 0;
 }
 
 u8 mf_WiFiSendFile(u8 *psrc)
@@ -1110,10 +1111,10 @@ u8 act_send_picture(void)
 	delay_ms(1000);
 	delay_ms(1000);	
 	printf("[INFO]mf_scan_files-B: \r\n");
-	mf_scan_files("0:INBOX");  // É¨ÃèÎÄ¼þ¼Ð
-	mf_send_pics("0:INBOX","0:ARCH",1,0);  // ·¢ËÍÍ¼Æ¬
+	mf_scan_files((u8*)SOURCE_OF_PICTURE_SD_PATH);  // É¨ÃèÎÄ¼þ¼Ð
+	mf_send_pics((u8*)SOURCE_OF_PICTURE_SD_PATH,(u8*)"0:ARCH",1,0);  // ·¢ËÍÍ¼Æ¬
 	printf("[INFO]mf_scan_files-A\r\n");
-	mf_scan_files("0:INBOX");  // É¨ÃèÎÄ¼þ¼Ü
+	mf_scan_files((u8*)SOURCE_OF_PICTURE_SD_PATH);  // É¨ÃèÎÄ¼þ¼Ü
 	return 1;
 }
 
@@ -1124,11 +1125,13 @@ u8 act_send_picture_wifi(void)
 	delay_ms(1000);
 	delay_ms(1000);	
 	
-	WiFiSendPic((u8*)"0:pic1.jpg"); // test send one picture.();
-//	printf("[INFO]mf_scan_files-B: \r\n");
-//	mf_scan_files("0:INBOXWIFI");  // É¨ÃèÎÄ¼þ¼Ð
-//	mf_send_pics("0:INBOXWIFI","0:ARCH",1,1);  // ·¢ËÍÍ¼Æ¬
-//	printf("[INFO]mf_scan_files-A\r\n");
-//	mf_scan_files("0:INBOXWIFI");  // É¨ÃèÎÄ¼þ¼Ü
+	// test send one picture
+	// WiFiSendPic((u8*)"0:pic1.jpg"); // test send one picture.();
+	
+	printf("[INFO]mf_scan_wifi_files-B: \r\n");
+	mf_scan_files((u8*)SOURCE_OF_PICTURE_WIFI_PATH);  // É¨ÃèÎÄ¼þ¼Ð
+	mf_send_pics((u8*)SOURCE_OF_PICTURE_WIFI_PATH,(u8*)"0:ARCH",1,1);  // WIFI·¢ËÍÍ¼Æ¬
+	printf("[INFO]mf_scan_wifi_files-A\r\n");
+	mf_scan_files((u8*)SOURCE_OF_PICTURE_WIFI_PATH);  // É¨ÃèÎÄ¼þ¼Ü
 	return 1;
 }

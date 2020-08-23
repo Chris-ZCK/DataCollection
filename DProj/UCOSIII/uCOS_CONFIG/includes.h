@@ -301,6 +301,15 @@ extern struct flash_package eerom;
 #define	 SENSOR_DATA_PATH 	"0:sensor.dat"
 #define	 SENSOR_DATA_WIFI_PATH 	"0:sensor_wifi.dat"
 
+#define SD_SIMULATION_CAMEAR 1
+#if SD_SIMULATION_CAMEAR
+#define  SOURCE_OF_PICTURE_PATH "0:DCIM/100IMAGE"
+#else
+#define  SOURCE_OF_PICTURE_PATH "1:DCIM/100IMAGE"
+#endif
+#define  SOURCE_OF_PICTURE_SD_PATH "0:INBOX"
+#define  SOURCE_OF_PICTURE_WIFI_PATH "0:INBOXWIFI"
+
 extern char MY_TOPIC[15];
 extern vu16 wifi_work_on_flag;
 extern	vu16 function_f;
