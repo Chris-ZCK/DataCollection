@@ -150,10 +150,10 @@ int32_t FluxMeasurement_get(void)
 {
 	u8 i=0;
 	uint32_t lus;
-	while(i++<5)
+	while(i++<6)
 	{
 		getFluxMeasurement(&lus);
-		if(lus>588000)
+		if(lus>188000 || lus==0)
 		{
 			max44009_initialize();
 			printf("[LOG]MAX44009 retry %d, init\r\n",i);
@@ -164,5 +164,5 @@ int32_t FluxMeasurement_get(void)
 		return lus;
 	}
 	printf("[WARNING]MAX44009 woking error\r\n");
-	return -9999;
+	return lus;
 }
